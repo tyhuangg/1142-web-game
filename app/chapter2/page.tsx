@@ -1,134 +1,195 @@
 'use client'
+
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Droplets, ZoomIn, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
-// 定義酒杯資料結構
-const INITIAL_CUPS = [
-  { id: 1, hasLipstick: true, content: '紹興酒', description: '杯緣留有鮮紅且凌亂的口紅印。' },
-  { id: 2, hasLipstick: false, content: '紹興酒', description: '杯緣乾淨，只有一些指紋。' },
-  { id: 3, hasLipstick: true, content: '紹興酒', description: '口紅印已經暈開，顯示飲用者情緒不穩。' },
-  { id: 4, hasLipstick: true, content: '紹興酒', description: '杯口殘留著淡淡的血絲與紅印。' },
-  { id: 5, hasLipstick: true, content: '紹興酒', description: '杯身濕漉漉的，口紅印清晰可見。' },
-  { id: 6, hasLipstick: false, content: '紹興酒', description: '完全乾淨的杯子，應該是施暴者喝的。' },
-  { id: 7, hasLipstick: true, content: '紹興酒', description: '最後一杯酒，印記顯得支離破碎。' },
-  { id: 8, hasLipstick: true, content: '紹興酒', description: '這杯酒似乎混雜了淚水。' },
+const CUPS = [
+  { id: 1, label: '杯子 1', hasLipstick: true, description: '杯緣留有鮮紅且凌亂的口紅印。', image: '/images/ch2_cup1.png', position: { left: '14%', top: '12%' } },
+  { id: 2, label: '杯子 2', hasLipstick: false, description: '杯緣乾淨，只有一些指紋。', image: '/images/ch2_cup2.png', position: { left: '32%', top: '10%' } },
+  { id: 3, label: '杯子 3', hasLipstick: true, description: '口紅印已經暈開，顯示飲用者情緒不穩。', image: '/images/ch2_cup3.png', position: { left: '50%', top: '14%' } },
+  { id: 4, label: '杯子 4', hasLipstick: true, description: '杯口殘留著淡淡的血絲與紅印。', image: '/images/ch2_cup4.png', position: { left: '68%', top: '11%' } },
+  { id: 5, label: '杯子 5', hasLipstick: true, description: '杯身濕漉漉的，口紅印清晰可見。', image: '/images/ch2_cup5.png', position: { left: '18%', top: '42%' } },
+  { id: 6, label: '杯子 6', hasLipstick: false, description: '完全乾淨的杯子，應該是施暴者喝的。', image: '/images/ch2_cup6.png', position: { left: '36%', top: '40%' } },
+  { id: 7, label: '杯子 7', hasLipstick: true, description: '最後一杯酒，印記顯得支離破碎。', image: '/images/ch2_cup7.png', position: { left: '56%', top: '40%' } },
+  { id: 8, label: '杯子 8', hasLipstick: true, description: '這杯酒似乎混雜了淚水。', image: '/images/ch2_cup8.png', position: { left: '74%', top: '38%' } },
 ]
 
+const TARGET_IDS = CUPS.filter((cup) => cup.hasLipstick).map((cup) => cup.id)
+
 export default function Chapter2() {
-  const [selectedCup, setSelectedCup] = useState<any>(null)
-  const [showLogicBoard, setShowLogicBoard] = useState(false)
-  const [answer, setAnswer] = useState<string>('')
+  const router = useRouter()
+  const [inventory, setInventory] = useState<Set<number>>(new Set())
+  const [selectedCupId, setSelectedCupId] = useState<number | null>(null)
+  const [answer, setAnswer] = useState('')
+  const [wrong, setWrong] = useState(false)
   const [isSolved, setIsSolved] = useState(false)
 
-  const checkAnswer = () => {
-    if (answer === '6') {
+  const selectedCup = selectedCupId ? CUPS.find((cup) => cup.id === selectedCupId) ?? null : null
+  const collectedLips = TARGET_IDS.filter((id) => inventory.has(id)).length
+  const canSolve = collectedLips === TARGET_IDS.length
+
+  function collectCup(id: number) {
+    setInventory((prev) => new Set(prev).add(id))
+    setSelectedCupId(id)
+  }
+
+  function submitAnswer() {
+    if (answer.trim() === '6' && canSolve) {
       setIsSolved(true)
-      alert("「六杯...她竟然被灌了六杯烈酒。」雲芳的手顫抖著。")
-    } else {
-      alert("不對，口紅印的數量對不上。再仔細觀察。")
+      return
     }
+
+    setWrong(true)
+    window.setTimeout(() => setWrong(false), 700)
   }
 
   return (
-    <div className="relative h-screen w-screen bg-[#0a0a0a] overflow-hidden">
-      {/* 背景圖：洗手間場景 */}
-      <div 
-        className="absolute inset-0 bg-[url('/images/ch2_washroom_bg.jpg')] bg-cover bg-center opacity-60 grayscale-[0.3]"
-        style={{ filter: 'contrast(1.2) brightness(0.8)' }}
+    <div className="relative h-screen w-screen overflow-hidden bg-[#060506] text-slate-100">
+      <div
+        className="absolute inset-0 bg-[url('/images/ch2_washroom_bg.jpg')] bg-cover bg-center"
+        style={{ filter: 'contrast(1.1) brightness(0.74)' }}
       />
+      <div className="absolute inset-0 bg-black/55 pointer-events-none" />
 
-      {/* 1960s 粒子/雜訊特效 (Overlay) */}
-      <div className="absolute inset-0 bg-red-900/5 pointer-events-none" />
-
-      {/* 頂部標題 */}
-      <div className="absolute top-8 left-8">
-        <h2 className="text-xl tracking-[0.3em] font-serif text-slate-400 border-b border-slate-700 pb-2">
+      <div className="absolute top-8 left-8 z-10">
+        <h2 className="text-xl tracking-[0.3em] font-serif text-slate-300 border-b border-slate-700 pb-2">
           CHAPTER 02: 洗手間的倒影
         </h2>
       </div>
 
-      {/* 核心物件：洗手台區域 */}
-      <div className="absolute left-[15%] top-[45%] flex flex-wrap gap-4 w-[400px]">
-        {INITIAL_CUPS.map((cup) => (
-          <motion.div
-            key={cup.id}
-            whileHover={{ scale: 1.1, y: -5 }}
-            onClick={() => setSelectedCup(cup)}
-            className="w-16 h-20 bg-white/10 border border-white/20 cursor-zoom-in flex flex-col items-center justify-end pb-2 rounded-t-sm"
-          >
-            {cup.hasLipstick && <div className="w-6 h-1 bg-red-600/60 rounded-full mb-12 blur-[1px]" />}
-            <span className="text-[10px] text-white/40">Cup {cup.id}</span>
-          </motion.div>
-        ))}
+      <div className="absolute inset-x-0 top-24 bottom-[38%] z-10">
+        {CUPS.map((cup) => {
+          const collected = inventory.has(cup.id)
+          const selected = selectedCupId === cup.id
+          return (
+            <motion.button
+              key={cup.id}
+              onClick={() => collectCup(cup.id)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.97 }}
+              className={`absolute flex items-center justify-center overflow-hidden rounded-xl border transition-all ${
+                collected ? 'border-amber-400/70 shadow-[0_0_32px_rgba(245,158,11,0.18)]' : 'border-white/15'
+              } ${selected ? 'ring-2 ring-amber-300/80' : ''}`}
+              style={{
+                left: cup.position.left,
+                top: cup.position.top,
+                width: 92,
+                height: 110,
+              }}
+            >
+              <img src={cup.image} alt={cup.label} className="h-full w-full object-contain" />
+            </motion.button>
+          )
+        })}
       </div>
 
-      {/* 倒在地上的娟娟 (互動點) */}
-      <motion.div 
-        initial={{ opacity: 0.5 }}
-        whileHover={{ opacity: 1 }}
-        className="absolute right-[20%] bottom-[10%] w-[40%] h-[30%] cursor-help"
-        onClick={() => alert("娟娟蜷縮在濕冷的地板上，長髮散亂，口中喃喃自語。")}
-      />
+      <div className="absolute inset-x-0 bottom-0 z-10 h-[38%] flex border-t border-white/10 bg-black/70 backdrop-blur-sm">
+        <div className="w-1/2 border-r border-white/10 p-6 flex flex-col gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.4em] text-amber-200/80">Evidence</p>
+            <h3 className="mt-2 text-2xl font-serif text-amber-100">收集到的線索</h3>
+          </div>
 
-      {/* 放大觀察視窗 (AnimatePresence) */}
-      <AnimatePresence>
-        {selectedCup && (
-          <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="absolute inset-0 z-50 bg-black/90 flex items-center justify-center p-20"
-          >
-            <div className="relative max-w-2xl w-full text-center">
-              <button onClick={() => setSelectedCup(null)} className="absolute -top-10 right-0 text-white hover:text-red-500">
-                <X size={32} />
-              </button>
-              <div className="text-6xl mb-8">🍷</div>
-              <h3 className="text-3xl font-serif mb-4 text-red-100">酒杯線索</h3>
-              <p className="text-xl text-slate-300 leading-loose tracking-widest italic">
-                「{selectedCup.description}」
-              </p>
-              <div className="mt-8 text-sm text-slate-500 uppercase tracking-widest">
-                殘留物：{selectedCup.content}
-              </div>
+          <div className="grid grid-cols-4 gap-2">
+            {CUPS.map((cup) => {
+              const collected = inventory.has(cup.id)
+              return (
+                <button
+                  key={cup.id}
+                  onClick={() => collected && setSelectedCupId(cup.id)}
+                  disabled={!collected}
+                  className={`h-24 rounded-lg border p-2 text-left transition ${
+                    collected ? 'border-amber-400/50 bg-amber-400/10 hover:bg-amber-400/15' : 'border-white/10 bg-white/5 text-slate-500'
+                  }`}
+                >
+                  <p className="text-[0.62rem] uppercase tracking-[0.2em] text-slate-400">{cup.label}</p>
+                  <p className={`mt-2 text-sm font-semibold ${collected ? 'text-slate-100' : 'text-slate-500'}`}>
+                    {collected ? '已收集' : '未收集'}
+                  </p>
+                </button>
+              )
+            })}
+          </div>
+
+          <div className="rounded-3xl border border-white/10 bg-slate-950/60 p-4">
+            <p className="text-xs uppercase tracking-[0.4em] text-slate-400">已收集口紅杯</p>
+            <p className="mt-1 text-3xl font-serif text-amber-100">{collectedLips} / {TARGET_IDS.length}</p>
+            <p className="mt-2 text-sm leading-relaxed text-slate-300">點擊畫面上的杯子，收集六杯帶有口紅印的證據。</p>
+          </div>
+
+          <div className="rounded-3xl border border-white/10 bg-slate-950/60 p-4">
+            {selectedCup ? (
+              <>
+                <p className="text-xs uppercase tracking-[0.4em] text-slate-400">當前杯子</p>
+                <p className="mt-2 text-lg font-serif text-amber-100">{selectedCup.label}</p>
+                <p className="mt-2 text-sm leading-relaxed text-slate-300">{selectedCup.description}</p>
+              </>
+            ) : (
+              <p className="text-sm text-slate-400">點擊任意杯子查看它的線索，並將它收入囊中。</p>
+            )}
+          </div>
+        </div>
+
+        <div className="w-1/2 p-6 flex flex-col justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.4em] text-amber-200/80">Logic Board</p>
+            <h3 className="mt-2 text-2xl font-serif text-amber-100">推理板</h3>
+          </div>
+
+          <div className="rounded-3xl border border-white/10 bg-slate-950/70 p-6 flex-1 flex flex-col justify-between gap-4">
+            <div>
+              <p className="text-sm text-slate-400">目前收集到的杯子數量</p>
+              <p className="mt-1 text-3xl font-serif text-amber-100">{inventory.size} / 8</p>
+              <p className="mt-3 text-sm text-slate-300">收集全部 6 杯口紅杯後，即可解答她喝了幾杯。</p>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
-      {/* 推理面板 (Logic Board) */}
-      <div className="fixed bottom-10 right-10">
-        {!isSolved ? (
-          <div className="bg-black/80 border border-red-900/50 p-6 backdrop-blur-md">
-            <p className="text-sm text-red-200 mb-4 tracking-tighter">【 推理任務：計算娟娟飲下的酒量 】</p>
-            <div className="flex items-center gap-4">
-              <span className="text-lg">娟娟一共喝了</span>
-              <input 
-                type="number" 
-                className="w-16 bg-transparent border-b-2 border-red-700 text-center text-2xl focus:outline-none"
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-              />
-              <span className="text-lg">杯</span>
-              <button 
-                onClick={checkAnswer}
-                className="ml-4 px-4 py-2 bg-red-900/40 hover:bg-red-900/80 border border-red-600 text-xs transition-all"
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <span className="text-lg">她喝了</span>
+                <input
+                  type="number"
+                  value={answer}
+                  onChange={(e) => setAnswer(e.target.value)}
+                  disabled={!canSolve}
+                  placeholder={canSolve ? '...' : '需收集 6 杯'}
+                  className="w-20 rounded-xl border border-amber-500/30 bg-black/40 px-3 py-2 text-center text-2xl text-amber-100 outline-none"
+                />
+                <span className="text-lg">杯</span>
+              </div>
+              <button
+                onClick={submitAnswer}
+                disabled={!canSolve}
+                className={`w-full rounded-2xl px-4 py-3 text-sm uppercase tracking-[0.2em] transition ${
+                  canSolve ? 'bg-amber-500 text-slate-950 hover:bg-amber-400' : 'bg-white/5 text-slate-500 cursor-not-allowed'
+                }`}
               >
-                確認結論
+                提交答案
               </button>
+              {wrong && <p className="text-sm text-red-300">答案不對，再確認你收集到的線索。</p>}
             </div>
           </div>
-        ) : (
-          <motion.div initial={{ y: 20 }} animate={{ y: 0 }} className="bg-green-900/20 border border-green-500/50 p-6">
-            <p className="text-green-400 font-serif">真相：柯老雄在三一三號房強迫娟娟飲下六杯紹興酒。</p>
-            <button className="mt-4 text-xs underline hover:text-white">前往金華街公寓 →</button>
-          </motion.div>
-        )}
-      </div>
 
-      {/* 背景環境音效提示 (實作時可加入 Audio tag) */}
-      <div className="absolute bottom-4 left-4 flex items-center gap-2 text-slate-500">
-        <Droplets size={14} />
-        <span className="text-[10px] tracking-widest uppercase">環境音：水滴聲、悶熱的蟬鳴</span>
+          <AnimatePresence>
+            {isSolved && (
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 16 }}
+                className="rounded-3xl border border-emerald-500/40 bg-emerald-900/30 p-5 text-amber-100"
+              >
+                <p className="text-sm uppercase tracking-[0.35em] text-emerald-200">解謎完成</p>
+                <p className="mt-2 text-lg font-serif">真相：柯老雄在三一三號房強迫娟娟飲下六杯紹興酒。</p>
+                <button
+                  onClick={() => router.push('/chapter3')}
+                  className="mt-4 inline-flex rounded-full bg-amber-400 px-4 py-2 text-sm text-slate-950 hover:bg-amber-300"
+                >
+                  前往第三關
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   )
