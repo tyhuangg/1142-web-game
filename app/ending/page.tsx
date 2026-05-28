@@ -1,8 +1,10 @@
 "use client"
-import { useState } from 'react'
 import Image from "next/image"
 import Link from "next/link";
 import { div } from 'framer-motion/client';
+import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
+import { useRouter } from 'next/navigation'
 
 
 export default function Ending() {
@@ -24,8 +26,64 @@ export default function Ending() {
           <div className='text-[32px] absolute top-8'>最終提問</div>
           <div className='flex flex-col justify-center items-center gap-6'>
             <div className='text-[32px]'>請問娟娟殺人的動機是什麼？</div>
-            <div className='flex justify-around items-center w-full gap-2 p-1'>
-              <div onClick={ending1} className='border-1 border-[#e8c870] hover:bg-[#e8c870] hover:text-black p-2'>
+            <div className="h-8"></div>
+            <div className='flex justify-around items-center w-full gap-8 p-1'>
+              <motion.button
+                onClick={ending1}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                style={{
+                  padding: '11px 28px',
+                  background: 'transparent',
+                  border: `1px solid rgba(180,135,55,0.48) `,
+                  borderRadius: 2,
+                  color: '#8a6828',
+                  fontSize: '1rem',
+                  letterSpacing: '0.45em',
+                  fontFamily: 'sans-serif',
+                  cursor: 'pointer',
+                }}
+              >
+                A. 蓄意謀殺
+              </motion.button>
+              <motion.button
+                onClick={ending1}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                style={{
+                  padding: '11px 28px',
+                  background: 'transparent',
+                  border: `1px solid rgba(180,135,55,0.48) `,
+                  borderRadius: 2,
+                  color: '#8a6828',
+                  fontSize: '1rem',
+                  letterSpacing: '0.45em',
+                  fontFamily: 'sans-serif',
+                  cursor: 'pointer',
+                }}
+              >
+                B. 毒品失控
+              </motion.button>
+              <motion.button
+                onClick={ending1}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                style={{
+                  padding: '11px 28px',
+                  background: 'transparent',
+                  border: `1px solid rgba(180,135,55,0.48) `,
+                  borderRadius: 2,
+                  color: '#8a6828',
+                  fontSize: '1rem',
+                  letterSpacing: '0.45em',
+                  fontFamily: 'sans-serif',
+                  cursor: 'pointer',
+                }}
+              >
+                C. 自我防衛
+              </motion.button>
+
+              {/* <div onClick={ending1} className='border-1 border-[#e8c870] hover:bg-[#e8c870] hover:text-black p-2'>
                 A. 蓄意謀殺
               </div>
               <div onClick={ending1} className='border-1 border-[#e8c870] hover:bg-[#e8c870] hover:text-black p-2'>
@@ -33,7 +91,7 @@ export default function Ending() {
               </div>
               <div onClick={ending2} className='border-1 border-[#e8c870] hover:bg-[#e8c870] hover:text-black p-2'>
                 C. 自我防衛
-              </div>
+              </div> */}
 
             </div>
           </div>
@@ -52,7 +110,7 @@ export default function Ending() {
               瘋人院中的病房一角，夜夜唱響孤戀花。
             </div>
           </div>
-          
+
           <div className='flex justify-center items-center w-full h-full'>
             <img src="/ending_sin.png" alt="She was caught" />
           </div>
@@ -71,13 +129,13 @@ export default function Ending() {
               你同情她的遭遇，而她繼續著不變的生活
             </div>
           </div>
-          
+
           <div className='flex justify-center items-center w-full h-full'>
             <img src="ending_letGo.png" alt="You let her go." />
           </div>
         </div>
 
-        
+
       }
 
     </>
