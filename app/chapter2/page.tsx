@@ -5,14 +5,14 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 
 const CUPS = [
-  { id: 1, label: '杯子 1', hasLipstick: true, description: '杯緣留有鮮紅且凌亂的口紅印。', image: '/images/ch2_cup1.png', position: { left: '14%', top: '12%' } },
-  { id: 2, label: '杯子 2', hasLipstick: false, description: '杯緣乾淨，只有一些指紋。', image: '/images/ch2_cup2.png', position: { left: '32%', top: '10%' } },
-  { id: 3, label: '杯子 3', hasLipstick: true, description: '口紅印已經暈開，顯示飲用者情緒不穩。', image: '/images/ch2_cup3.png', position: { left: '50%', top: '14%' } },
-  { id: 4, label: '杯子 4', hasLipstick: true, description: '杯口殘留著淡淡的血絲與紅印。', image: '/images/ch2_cup4.png', position: { left: '68%', top: '11%' } },
-  { id: 5, label: '杯子 5', hasLipstick: true, description: '杯身濕漉漉的，口紅印清晰可見。', image: '/images/ch2_cup5.png', position: { left: '18%', top: '42%' } },
-  { id: 6, label: '杯子 6', hasLipstick: false, description: '完全乾淨的杯子，應該是施暴者喝的。', image: '/images/ch2_cup6.png', position: { left: '36%', top: '40%' } },
-  { id: 7, label: '杯子 7', hasLipstick: true, description: '最後一杯酒，印記顯得支離破碎。', image: '/images/ch2_cup7.png', position: { left: '56%', top: '40%' } },
-  { id: 8, label: '杯子 8', hasLipstick: true, description: '這杯酒似乎混雜了淚水。', image: '/images/ch2_cup8.png', position: { left: '74%', top: '38%' } },
+  { id: 1, label: '杯子 1', hasLipstick: true, description: '杯緣留有鮮紅且凌亂的口紅印。', image: '/images/ch2_glass1.jpg', position: { left: '14%', top: '12%' } },
+  { id: 2, label: '杯子 2', hasLipstick: false, description: '杯緣乾淨，只有一些指紋。', image: '/images/ch2_glass1.jpg', position: { left: '32%', top: '10%' } },
+  { id: 3, label: '杯子 3', hasLipstick: true, description: '口紅印已經暈開，顯示飲用者情緒不穩。', image: '/images/ch2_glass3.jpg', position: { left: '50%', top: '14%' } },
+  { id: 4, label: '杯子 4', hasLipstick: true, description: '杯口殘留著淡淡的血絲與紅印。', image: '/images/ch2_glass4.jpg', position: { left: '68%', top: '11%' } },
+  { id: 5, label: '杯子 5', hasLipstick: true, description: '杯身濕漉漉的，口紅印清晰可見。', image: '/images/ch2_glass5.jpg', position: { left: '18%', top: '42%' } },
+  { id: 6, label: '杯子 6', hasLipstick: false, description: '完全乾淨的杯子，應該是施暴者喝的。', image: '/images/ch2_glass6.jpg', position: { left: '36%', top: '40%' } },
+  { id: 7, label: '杯子 7', hasLipstick: true, description: '最後一杯酒，印記顯得支離破碎。', image: '/images/ch2_glass7.jpg', position: { left: '56%', top: '40%' } },
+  { id: 8, label: '杯子 8', hasLipstick: true, description: '這杯酒似乎混雜了淚水。', image: '/images/ch2_glass8.jpg', position: { left: '74%', top: '38%' } },
 ]
 
 const TARGET_IDS = CUPS.filter((cup) => cup.hasLipstick).map((cup) => cup.id)
@@ -47,15 +47,18 @@ export default function Chapter2() {
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-[#060506] text-slate-100">
       <div
-        className="absolute inset-0 bg-[url('/images/ch2_washroom_bg.jpg')] bg-cover bg-center"
+        className="absolute inset-0 bg-[url('/images/ch2_washroom_bg2.jpg')] bg-cover bg-center"
         style={{ filter: 'contrast(1.1) brightness(0.74)' }}
       />
       <div className="absolute inset-0 bg-black/55 pointer-events-none" />
 
-      <div className="absolute top-8 left-8 z-10">
-        <h2 className="text-xl tracking-[0.3em] font-serif text-slate-300 border-b border-slate-700 pb-2">
-          CHAPTER 02: 洗手間的倒影
-        </h2>
+      <div className="absolute top-4 left-5 flex flex-col gap-0.5 pointer-events-none" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.95)' }}>
+        <p style={{ color: '#806030', fontSize: '0.55rem', letterSpacing: '0.38em', fontFamily: 'sans-serif' }}>
+          CHAPTER  II
+        </p>
+        <p style={{ color: '#e8c870', fontSize: '1rem', letterSpacing: '0.2em', fontFamily: 'serif' }}>
+          洗手間的倒影
+        </p>
       </div>
 
       <div className="absolute inset-x-0 top-24 bottom-[38%] z-10">
@@ -74,7 +77,7 @@ export default function Chapter2() {
               style={{
                 left: cup.position.left,
                 top: cup.position.top,
-                width: 92,
+                width: 110,
                 height: 110,
               }}
             >
@@ -82,17 +85,27 @@ export default function Chapter2() {
             </motion.button>
           )
         })}
+        {/* 閃爍的黃底提示區塊（顯示在照片區下方） */}
+        <div className="absolute left-1/2 bottom-4 z-20 -translate-x-1/2 transform">
+          <div className="animate-pulse rounded-xl bg-amber-300/90 px-6 py-2 text-sm font-semibold text-slate-950 shadow-lg">
+            請注意：請注意不同酒杯上的細節
+          </div>
+        </div>
       </div>
 
       <div className="absolute inset-x-0 bottom-0 z-10 h-[38%] flex border-t border-white/10 bg-black/70 backdrop-blur-sm">
-        <div className="w-1/2 border-r border-white/10 p-6 flex flex-col gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.4em] text-amber-200/80">Evidence</p>
-            <h3 className="mt-2 text-2xl font-serif text-amber-100">收集到的線索</h3>
+        <div className="flex flex-col overflow-hidden" style={{ width: '50%', padding: '14px 16px', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="flex items-baseline gap-2 mb-3 flex-none">
+            <h2 style={{ color: '#dcc070', fontSize: '0.9rem', letterSpacing: '0.22em', fontFamily: 'serif' }}>
+              Evidence
+            </h2>
+            <span style={{ color: '#5a4820', fontSize: '0.55rem', letterSpacing: '0.18em', fontFamily: 'sans-serif' }}>
+              證據欄
+            </span>
           </div>
 
-          <div className="grid grid-cols-4 gap-2">
-            {CUPS.map((cup) => {
+          <div className="grid grid-cols-3 gap-2">
+            {CUPS.slice(0, 6).map((cup) => {
               const collected = inventory.has(cup.id)
               return (
                 <button
@@ -118,12 +131,24 @@ export default function Chapter2() {
             <p className="mt-2 text-sm leading-relaxed text-slate-300">點擊畫面上的杯子，收集六杯帶有口紅印的證據。</p>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-slate-950/60 p-4">
+            <div className="rounded-3xl border border-white/10 bg-slate-950/60 p-4 relative">
             {selectedCup ? (
               <>
                 <p className="text-xs uppercase tracking-[0.4em] text-slate-400">當前杯子</p>
                 <p className="mt-2 text-lg font-serif text-amber-100">{selectedCup.label}</p>
                 <p className="mt-2 text-sm leading-relaxed text-slate-300">{selectedCup.description}</p>
+                {/* 遊戲風格提示：根據是否有口紅顯示不同提示 */}
+                <div className="mt-4 inline-flex items-center gap-3 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
+                  <div className={`inline-flex h-8 w-8 items-center justify-center rounded-full ${selectedCup.hasLipstick ? 'bg-amber-400/20' : 'bg-slate-700/20'} animate-bounce`}>💡</div>
+                  <div>
+                    {selectedCup.hasLipstick ? (
+                      <p className="font-semibold">提示：杯緣有口紅印，可能屬於受害者。</p>
+                    ) : (
+                      <p className="font-semibold">提示：杯緣乾淨，可能是施暴者所用。</p>
+                    )}
+                    <p className="text-xs text-slate-400">（可作為推理的輔助線索）</p>
+                  </div>
+                </div>
               </>
             ) : (
               <p className="text-sm text-slate-400">點擊任意杯子查看它的線索，並將它收入囊中。</p>
@@ -131,10 +156,14 @@ export default function Chapter2() {
           </div>
         </div>
 
-        <div className="w-1/2 p-6 flex flex-col justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.4em] text-amber-200/80">Logic Board</p>
-            <h3 className="mt-2 text-2xl font-serif text-amber-100">推理板</h3>
+        <div className="flex flex-col overflow-hidden" style={{ width: '50%', padding: '14px 18px' }}>
+          <div className="flex items-baseline gap-2 mb-3 flex-none">
+            <h2 style={{ color: '#dcc070', fontSize: '0.9rem', letterSpacing: '0.22em', fontFamily: 'serif' }}>
+              Logic Board
+            </h2>
+            <span style={{ color: '#5a4820', fontSize: '0.55rem', letterSpacing: '0.18em', fontFamily: 'sans-serif' }}>
+              推理板
+            </span>
           </div>
 
           <div className="rounded-3xl border border-white/10 bg-slate-950/70 p-6 flex-1 flex flex-col justify-between gap-4">
