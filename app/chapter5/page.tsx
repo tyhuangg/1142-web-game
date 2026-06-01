@@ -27,7 +27,7 @@ export default function Chapter5() {
       img: "/CH5/ch5_cube4.png",
     },
     {
-      title: "5. 娟娟拿起熨斗",
+      title: "5. 柯老雄付錢給娟娟",
       img: "/CH5/ch5_cube5.png",
     },
     {
