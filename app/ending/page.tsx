@@ -20,83 +20,62 @@ export default function Ending() {
 
   return (
     <>
-      {
-        (counter == 0) &&
-        <div className='bg-black text-[#e8c870] font-[serif] tracking-widest flex justify-center items-center w-full h-full relative'>
-          <div className='text-[32px] absolute top-8'>最終提問</div>
-          <div className='flex flex-col justify-center items-center gap-6'>
-            <div className='text-[32px]'>請問娟娟殺人的動機是什麼？</div>
-            <div className="h-8"></div>
-            <div className='flex justify-around items-center w-full gap-8 p-1'>
-              <motion.button
-                onClick={ending1}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                style={{
-                  padding: '11px 28px',
-                  background: 'transparent',
-                  border: `1px solid rgba(180,135,55,0.48) `,
-                  borderRadius: 2,
-                  color: '#8a6828',
-                  fontSize: '1rem',
-                  letterSpacing: '0.45em',
-                  fontFamily: 'sans-serif',
-                  cursor: 'pointer',
-                }}
-              >
-                A. 蓄意謀殺
-              </motion.button>
-              <motion.button
-                onClick={ending1}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                style={{
-                  padding: '11px 28px',
-                  background: 'transparent',
-                  border: `1px solid rgba(180,135,55,0.48) `,
-                  borderRadius: 2,
-                  color: '#8a6828',
-                  fontSize: '1rem',
-                  letterSpacing: '0.45em',
-                  fontFamily: 'sans-serif',
-                  cursor: 'pointer',
-                }}
-              >
-                B. 毒品失控
-              </motion.button>
-              <motion.button
-                onClick={ending1}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                style={{
-                  padding: '11px 28px',
-                  background: 'transparent',
-                  border: `1px solid rgba(180,135,55,0.48) `,
-                  borderRadius: 2,
-                  color: '#8a6828',
-                  fontSize: '1rem',
-                  letterSpacing: '0.45em',
-                  fontFamily: 'sans-serif',
-                  cursor: 'pointer',
-                }}
-              >
-                C. 自我防衛
-              </motion.button>
+      {counter === 0 && (
+  <section className="min-h-screen w-full bg-black text-[#e8c870] font-[serif] tracking-widest flex flex-col items-center justify-center px-6 relative overflow-hidden">
+    {/* 上方章節標題 */}
+    <div className="absolute top-10 left-1/2 -translate-x-1/2 text-xl md:text-3xl">
+      最終提問
+    </div>
 
-              {/* <div onClick={ending1} className='border-1 border-[#e8c870] hover:bg-[#e8c870] hover:text-black p-2'>
-                A. 蓄意謀殺
-              </div>
-              <div onClick={ending1} className='border-1 border-[#e8c870] hover:bg-[#e8c870] hover:text-black p-2'>
-                B. 毒品失控
-              </div>
-              <div onClick={ending2} className='border-1 border-[#e8c870] hover:bg-[#e8c870] hover:text-black p-2'>
-                C. 自我防衛
-              </div> */}
+    {/* 中央內容 */}
+    <div className="w-full max-w-5xl flex flex-col items-center text-center">
+      <div className="mb-12">
+        <p className="text-sm md:text-base text-[#e8c870]/60 mb-4">
+          請做出最後的判斷
+        </p>
 
-            </div>
-          </div>
-        </div>
-      }
+        <h1 className="text-2xl md:text-4xl leading-relaxed">
+          請問娟娟殺人的動機是什麼？
+        </h1>
+      </div>
+
+      {/* 選項按鈕 */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
+        <motion.button
+          onClick={ending1}
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.96 }}
+          className="h-20 border border-[#b48737]/60 rounded-md text-[#e8c870] hover:bg-[#e8c870] hover:text-black transition duration-300 text-sm md:text-base tracking-[0.28em] font-sans"
+        >
+          A. 蓄意謀殺
+        </motion.button>
+
+        <motion.button
+          onClick={ending1}
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.96 }}
+          className="h-20 border border-[#b48737]/60 rounded-md text-[#e8c870] hover:bg-[#e8c870] hover:text-black transition duration-300 text-sm md:text-base tracking-[0.28em] font-sans"
+        >
+          B. 毒品失控
+        </motion.button>
+
+        <motion.button
+          onClick={ending2}
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.96 }}
+          className="h-20 border border-[#b48737]/60 rounded-md text-[#e8c870] hover:bg-[#e8c870] hover:text-black transition duration-300 text-sm md:text-base tracking-[0.28em] font-sans"
+        >
+          C. 自我防衛
+        </motion.button>
+      </div>
+    </div>
+
+    {/* 底部提示 */}
+    <div className="absolute bottom-10 text-xs md:text-sm text-[#e8c870]/40 tracking-[0.3em]">
+      選擇後將進入結局
+    </div>
+  </section>
+)}
 
 
       {

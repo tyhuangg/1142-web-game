@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type Choice = {
   title: string;
@@ -43,9 +44,9 @@ export default function Chapter5() {
     },
   ];
 
-  // 正確答案：從 8 個選項中挑 4 個，且順序必須正確
-  // 這裡的數字代表 choices 的 index
-  const rightAnswer = [1, 4, 2, 7];
+  // 正確答案：畫面上的 1 → 4 → 2 → 7
+  // 因為陣列 index 從 0 開始，所以要寫成 0 → 3 → 1 → 6
+  const rightAnswer = [0, 3, 1, 6];
 
   const [answer, setAnswer] = useState<number[]>([]);
   const [ACount, setACount] = useState(0);
@@ -91,6 +92,7 @@ export default function Chapter5() {
 
     if (a === 4) {
       setMessage("完全正確！");
+      router.push("/ending");
     } else {
       setMessage(`結果：${a}A${b}B`);
     }
@@ -102,7 +104,7 @@ export default function Chapter5() {
     setBCount(0);
     setMessage("");
   }
-
+  const router = useRouter();
   return (
     <div className="relative min-h-screen w-screen bg-black overflow-hidden text-[#e8c870] font-[serif] tracking-widest flex flex-col items-center">
       <div className="absolute top-8 text-2xl">第五章</div>
@@ -127,10 +129,9 @@ export default function Chapter5() {
               key={index}
               onClick={() => handleSelect(index)}
               className={`rounded-2xl w-[240px] h-[160px] relative overflow-hidden border-2 transition
-                ${
-                  isSelected
-                    ? "border-[#e8c870] scale-105"
-                    : "border-transparent opacity-80 hover:opacity-100"
+                ${isSelected
+                  ? "border-[#e8c870] scale-105"
+                  : "border-transparent opacity-80 hover:opacity-100"
                 }
               `}
             >
