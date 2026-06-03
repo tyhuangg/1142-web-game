@@ -1,5 +1,8 @@
 let audio: HTMLAudioElement | null = null
 let fadeTimer: ReturnType<typeof setInterval> | null = null
+let fadeInDurationMs = 1800
+let unlockBound = false
+let pendingPlay = false
 
 function getInstance(): HTMLAudioElement | null {
   if (typeof window === 'undefined') return null
@@ -7,6 +10,7 @@ function getInstance(): HTMLAudioElement | null {
     audio = new Audio('/audio/ch4_footsteps.mp3')
     audio.loop = true
     audio.volume = 0
+    audio.preload = 'auto'
   }
   return audio
 }
@@ -18,16 +22,13 @@ function clearFade() {
   }
 }
 
-export function fadeInChapter4Footsteps(durationMs = 1800) {
+function runFadeIn() {
   const a = getInstance()
   if (!a) return
   clearFade()
-  a.volume = 0
-  a.currentTime = 0
-  a.play().catch(() => {})
 
   const steps = 30
-  const interval = durationMs / steps
+  const interval = fadeInDurationMs / steps
   const increment = 1 / steps
   fadeTimer = setInterval(() => {
     if (!a) {
@@ -41,6 +42,43 @@ export function fadeInChapter4Footsteps(durationMs = 1800) {
       clearFade()
     }
   }, interval)
+}
+
+function tryPlayFootsteps() {
+  const a = getInstance()
+  if (!a) return
+  a.play()
+    .then(() => {
+      pendingPlay = false
+      runFadeIn()
+    })
+    .catch(() => {
+      pendingPlay = true
+      bindUnlockOnInteraction()
+    })
+}
+
+function bindUnlockOnInteraction() {
+  if (unlockBound || typeof window === 'undefined') return
+  unlockBound = true
+
+  const resume = () => {
+    if (!pendingPlay) return
+    tryPlayFootsteps()
+  }
+
+  window.addEventListener('pointerdown', resume, { once: true })
+  window.addEventListener('keydown', resume, { once: true })
+}
+
+export function fadeInChapter4Footsteps(durationMs = 1800) {
+  const a = getInstance()
+  if (!a) return
+  fadeInDurationMs = durationMs
+  clearFade()
+  a.volume = 0
+  a.currentTime = 0
+  tryPlayFootsteps()
 }
 
 export function fadeOutChapter4Footsteps(durationMs = 1000) {
@@ -74,6 +112,7 @@ export function fadeOutChapter4Footsteps(durationMs = 1000) {
 
 export function stopChapter4Footsteps() {
   clearFade()
+  pendingPlay = false
   const a = getInstance()
   if (!a) return
   a.pause()
