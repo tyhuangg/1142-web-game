@@ -326,6 +326,19 @@ export default function Chapter5() {
                 </p>
               </div>
 
+              <div className="absolute top-4 right-5 flex flex-col gap-0.5 pointer-events-none z-10"
+                style={{ textShadow: '0 2px 10px rgba(0,0,0,0.95)' }}>
+                <p style={{ color: '#e8c870', fontSize: '0.75rem', letterSpacing: '0.2em', fontFamily: 'sans-serif' }}>
+                  幾 A 幾 B 判定規則：
+                </p>
+                <p style={{ color: '#e8c870', fontSize: '0.75rem', letterSpacing: '0.2em', fontFamily: 'sans-serif' }}>
+                  有幾個 A 即代表選項正確且順序正確的數量
+                </p>
+                <p style={{ color: '#e8c870', fontSize: '0.75rem', letterSpacing: '0.2em', fontFamily: 'sans-serif' }}>
+                  有幾個 B 即代表選項正確但順序不正確的數量
+                </p>
+              </div>
+
               {/* 黑色遮罩，讓文字和卡片更清楚 */}
               <div className="absolute inset-0 bg-black/25 backdrop-blur-sm backdrop-saturate-150" />
 
