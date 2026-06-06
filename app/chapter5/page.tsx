@@ -326,7 +326,7 @@ export default function Chapter5() {
                 </p>
               </div>
 
-              <div className="absolute top-4 right-5 flex flex-col gap-0.5 pointer-events-none z-10"
+              <div className="absolute top-4 right-5 border-1 border-'#e8c870' flex flex-col gap-0.5 pointer-events-none p-2 z-10 opacity-70"
                 style={{ textShadow: '0 2px 10px rgba(0,0,0,0.95)' }}>
                 <p style={{ color: '#e8c870', fontSize: '0.75rem', letterSpacing: '0.2em', fontFamily: 'sans-serif' }}>
                   幾 A 幾 B 判定規則：
