@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
-type Page = "title" | "story" | "game";
+type Page = "title" | "story" | "game" | "correct";
 
 type Choice = {
   title: string;
@@ -97,9 +97,11 @@ export default function Chapter5() {
 
     if (a === 4) {
       setMessage("真相已經重建完成。");
+      setPage("correct");
+    
       setTimeout(() => {
         router.push("/ending");
-      }, 900);
+      }, 3000);
     } else {
       setMessage(`結果：${a}A${b}B`);
     }
@@ -425,6 +427,82 @@ export default function Chapter5() {
             </div>
           </motion.section>
         )}
+
+{page === "correct" && (
+  <motion.section
+    key="correct"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    transition={{ duration: 0.65 }}
+    className="absolute inset-0 flex flex-col items-center justify-center"
+  >
+    {/* 背景圖片 */}
+    <div
+      className="absolute inset-0"
+      style={{
+        backgroundImage: "url('/images/room.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center 45%",
+        filter: "brightness(0.16) blur(1px)",
+        transform: "scale(1.03)",
+      }}
+    />
+
+    {/* 黑色遮罩 */}
+    <div className="absolute inset-0 bg-black/65" />
+
+    {/* 文字內容 */}
+    <motion.div
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2, duration: 0.9 }}
+      className="relative z-10 flex flex-col items-center text-center px-8"
+      style={{ maxWidth: 520 }}
+    >
+      <p
+        style={{
+          color: "#6a4820",
+          fontSize: "0.55rem",
+          letterSpacing: "0.55em",
+          fontFamily: "sans-serif",
+          marginBottom: 16,
+        }}
+      >
+        TRUTH RESTORED
+      </p>
+
+      <h1
+        style={{
+          color: "#e8c870",
+          fontSize: "2.2rem",
+          letterSpacing: "0.28em",
+          fontFamily: "serif",
+          textShadow:
+            "0 0 50px rgba(232,200,112,0.3), 0 4px 20px rgba(0,0,0,0.9)",
+          marginBottom: 28,
+        }}
+      >
+        回答正確
+      </h1>
+
+      <p
+        style={{
+          color: "#d8c8a0",
+          fontSize: "1rem",
+          letterSpacing: "0.24em",
+          fontFamily: "serif",
+          lineHeight: 2.2,
+          textAlign: "center",
+        }}
+      >
+        你已還原真相。
+        <br />
+        那一夜發生的一切，終於重新浮現。
+      </p>
+    </motion.div>
+  </motion.section>
+)}
       </AnimatePresence>
     </main>
   );

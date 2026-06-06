@@ -1,123 +1,277 @@
-"use client"
-import Image from "next/image"
-import Link from "next/link";
-import { div } from 'framer-motion/client';
-import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { useRouter } from 'next/navigation'
+"use client";
 
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Ending() {
-
   const [counter, setCounter] = useState(0);
 
   function ending1() {
-    setCounter(counter + 1);
+    setCounter(1);
   }
+
   function ending2() {
-    setCounter(counter + 2);
+    setCounter(2);
   }
 
   return (
-    <>
-      {counter === 0 && (
-  <section className="min-h-screen w-full bg-black text-[#e8c870] font-[serif] tracking-widest flex flex-col items-center justify-center px-6 relative overflow-hidden">
-    {/* 上方章節標題 */}
-    <div className="absolute top-10 left-1/2 -translate-x-1/2 text-xl md:text-3xl">
-      最終提問
-    </div>
+    <main className="relative min-h-screen w-full overflow-hidden bg-black text-[#e8c870] font-[serif] tracking-widest">
+      <AnimatePresence mode="wait">
+        {counter === 0 && (
+          <motion.section
+            key="question"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.65 }}
+            className="absolute inset-0 flex flex-col items-center justify-center px-6 overflow-hidden"
+          >
+            {/* 背景圖片：娟娟房間 */}
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundImage: "url('/CH5/room.png')",
+                backgroundSize: "cover",
+                backgroundPosition: "center 45%",
+                filter: "brightness(0.18) blur(1px)",
+                transform: "scale(1.03)",
+              }}
+            />
 
-    {/* 中央內容 */}
-    <div className="w-full max-w-5xl flex flex-col items-center text-center">
-      <div className="mb-12">
-        <p className="text-sm md:text-base text-[#e8c870]/60 mb-4">
-          請做出最後的判斷
-        </p>
+            {/* 壓暗與舞台光 */}
+            <div className="absolute inset-0 bg-black/60" />
 
-        <h1 className="text-2xl md:text-4xl leading-relaxed">
-          請問娟娟殺人的動機是什麼？
-        </h1>
-      </div>
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "radial-gradient(circle at center, rgba(200,150,45,0.12), transparent 48%)",
+              }}
+            />
 
-      {/* 選項按鈕 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
-        <motion.button
-          onClick={ending1}
-          whileHover={{ scale: 1.04 }}
-          whileTap={{ scale: 0.96 }}
-          className="h-20 border border-[#b48737]/60 rounded-md text-[#e8c870] hover:bg-[#e8c870] hover:text-black transition duration-300 text-sm md:text-base tracking-[0.28em] font-sans"
-        >
-          A. 蓄意謀殺
-        </motion.button>
+            {/* 上方標題 */}
+            <motion.div
+              initial={{ opacity: 0, y: -12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.8 }}
+              className="absolute top-10 left-1/2 -translate-x-1/2 text-center z-10"
+            >
+              <p className="text-xs md:text-sm text-[#6a4820] tracking-[0.5em] font-sans mb-3">
+                FINAL QUESTION
+              </p>
+              <h1 className="text-2xl md:text-4xl text-[#e8c870]">
+                最終提問
+              </h1>
+            </motion.div>
 
-        <motion.button
-          onClick={ending1}
-          whileHover={{ scale: 1.04 }}
-          whileTap={{ scale: 0.96 }}
-          className="h-20 border border-[#b48737]/60 rounded-md text-[#e8c870] hover:bg-[#e8c870] hover:text-black transition duration-300 text-sm md:text-base tracking-[0.28em] font-sans"
-        >
-          B. 毒品失控
-        </motion.button>
+            {/* 中央內容卡片 */}
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35, duration: 0.9 }}
+              className="
+                relative z-10
+                w-full max-w-5xl
+                border border-[#b48737]/40
+                bg-black/65
+                shadow-[0_0_60px_rgba(232,200,112,0.12)]
+                px-6 md:px-16
+                py-14 md:py-20
+                text-center
+              "
+            >
+              <p className="text-sm md:text-base text-[#e8c870]/55 mb-6 tracking-[0.4em] font-sans">
+                請做出最後的判斷
+              </p>
 
-        <motion.button
-          onClick={ending2}
-          whileHover={{ scale: 1.04 }}
-          whileTap={{ scale: 0.96 }}
-          className="h-20 border border-[#b48737]/60 rounded-md text-[#e8c870] hover:bg-[#e8c870] hover:text-black transition duration-300 text-sm md:text-base tracking-[0.28em] font-sans"
-        >
-          C. 自我防衛
-        </motion.button>
-      </div>
-    </div>
+              <h2 className="text-2xl md:text-5xl leading-relaxed md:leading-[1.6] mb-14 text-[#d8c8a0]">
+                請問娟娟殺人的動機是什麼？
+              </h2>
 
-    {/* 底部提示 */}
-    <div className="absolute bottom-10 text-xs md:text-sm text-[#e8c870]/40 tracking-[0.3em]">
-      選擇後將進入結局
-    </div>
-  </section>
-)}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-8">
+                <motion.button
+                  onClick={ending1}
+                  whileHover={{ scale: 1.04, y: -4 }}
+                  whileTap={{ scale: 0.96 }}
+                  className="
+                    group min-h-[88px]
+                    border border-[#b48737]/60
+                    bg-black/60
+                    hover:bg-[#e8c870]
+                    hover:text-black
+                    transition-all duration-300
+                    px-5 py-5
+                    text-sm md:text-base
+                    tracking-[0.28em]
+                    font-sans
+                  "
+                >
+                  <span className="block text-xs opacity-50 mb-2 group-hover:opacity-70">
+                    OPTION A
+                  </span>
+                  A. 蓄意謀殺
+                </motion.button>
 
+                <motion.button
+                  onClick={ending1}
+                  whileHover={{ scale: 1.04, y: -4 }}
+                  whileTap={{ scale: 0.96 }}
+                  className="
+                    group min-h-[88px]
+                    border border-[#b48737]/60
+                    bg-black/60
+                    hover:bg-[#e8c870]
+                    hover:text-black
+                    transition-all duration-300
+                    px-5 py-5
+                    text-sm md:text-base
+                    tracking-[0.28em]
+                    font-sans
+                  "
+                >
+                  <span className="block text-xs opacity-50 mb-2 group-hover:opacity-70">
+                    OPTION B
+                  </span>
+                  B. 毒品失控
+                </motion.button>
 
-      {
-        (counter == 1) &&
-        <div className='text-white bg-black flex flex-col justify-center items-center w-full h-full relative'>
-          <div className='flex flex-col items-center w-full h-full text-[32px] absolute top-8'>
-            <div>
-              結局：瘋人院
-            </div>
-            <div className='text-[16px]'>
-              瘋人院中的病房一角，夜夜唱響孤戀花。
-            </div>
-          </div>
+                <motion.button
+                  onClick={ending2}
+                  whileHover={{ scale: 1.04, y: -4 }}
+                  whileTap={{ scale: 0.96 }}
+                  className="
+                    group min-h-[88px]
+                    border border-[#b48737]/60
+                    bg-black/60
+                    hover:bg-[#e8c870]
+                    hover:text-black
+                    transition-all duration-300
+                    px-5 py-5
+                    text-sm md:text-base
+                    tracking-[0.28em]
+                    font-sans
+                  "
+                >
+                  <span className="block text-xs opacity-50 mb-2 group-hover:opacity-70">
+                    OPTION C
+                  </span>
+                  C. 自我防衛
+                </motion.button>
+              </div>
+            </motion.div>
 
-          <div className='flex justify-center items-center w-full h-full'>
-            <img src="/ending_sin.png" alt="She was caught" />
-          </div>
-        </div>
-      }
+            <motion.div
+              animate={{ opacity: [0.25, 0.7, 0.25] }}
+              transition={{ duration: 2.8, repeat: Infinity }}
+              className="absolute bottom-8 left-1/2 -translate-x-1/2 text-xs md:text-sm text-[#e8c870]/35 tracking-[0.35em] text-center z-10"
+            >
+              選擇後將揭開結局
+            </motion.div>
+          </motion.section>
+        )}
 
-      {
-        (counter == 2) &&
+        {counter === 1 && (
+          <motion.section
+            key="ending1"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.75 }}
+            className="absolute inset-0 flex flex-col items-center justify-center bg-black overflow-hidden px-6"
+          >
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "radial-gradient(circle at center, rgba(200,150,45,0.1), transparent 48%)",
+              }}
+            />
 
-        <div className='text-white bg-black flex flex-col justify-center items-center w-full h-full relative'>
-          <div className='flex flex-col items-center w-full h-full text-[32px] absolute top-8'>
-            <div>
-              結局：隱瞞真相
-            </div>
-            <div className='text-[16px]'>
-              你同情她的遭遇，而她繼續著不變的生活
-            </div>
-          </div>
+            <motion.div
+              initial={{ opacity: 0, y: -14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25, duration: 0.8 }}
+              className="absolute top-8 left-1/2 -translate-x-1/2 text-center z-10 w-full px-6"
+            >
+              <p className="text-xs text-[#6a4820] tracking-[0.5em] font-sans mb-3">
+                ENDING
+              </p>
 
-          <div className='flex justify-center items-center w-full h-full'>
-            <img src="ending_letGo.png" alt="You let her go." />
-          </div>
-        </div>
+              <h1 className="text-2xl md:text-4xl text-[#e8c870] mb-4">
+                結局：瘋人院
+              </h1>
 
+              <p className="text-sm md:text-base text-[#d8c8a0]/75 leading-loose">
+                瘋人院中的病房一角，夜夜唱響孤戀花。
+              </p>
+            </motion.div>
 
-      }
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.45, duration: 1 }}
+              className="relative z-0 flex justify-center items-center w-full max-w-5xl mt-24"
+            >
+              <img
+                src="/ending_sin.png"
+                alt="She was caught"
+                className="max-h-[72vh] w-auto object-contain opacity-90"
+              />
+            </motion.div>
+          </motion.section>
+        )}
 
-    </>
+        {counter === 2 && (
+          <motion.section
+            key="ending2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.75 }}
+            className="absolute inset-0 flex flex-col items-center justify-center bg-black overflow-hidden px-6"
+          >
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  "radial-gradient(circle at center, rgba(200,150,45,0.1), transparent 48%)",
+              }}
+            />
 
-  )
+            <motion.div
+              initial={{ opacity: 0, y: -14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25, duration: 0.8 }}
+              className="absolute top-8 left-1/2 -translate-x-1/2 text-center z-10 w-full px-6"
+            >
+              <p className="text-xs text-[#6a4820] tracking-[0.5em] font-sans mb-3">
+                ENDING
+              </p>
+
+              <h1 className="text-2xl md:text-4xl text-[#e8c870] mb-4">
+                結局：隱瞞真相
+              </h1>
+
+              <p className="text-sm md:text-base text-[#d8c8a0]/75 leading-loose">
+                你同情她的遭遇，而她繼續著不變的生活。
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.45, duration: 1 }}
+              className="relative z-0 flex justify-center items-center w-full max-w-5xl mt-24"
+            >
+              <img
+                src="/ending_letGo.png"
+                alt="You let her go."
+                className="max-h-[72vh] w-auto object-contain opacity-90"
+              />
+            </motion.div>
+          </motion.section>
+        )}
+      </AnimatePresence>
+    </main>
+  );
 }
