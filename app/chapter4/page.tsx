@@ -9,6 +9,11 @@ import {
   fadeOutChapter4Footsteps,
   stopChapter4Footsteps,
 } from '@/lib/chapter4Footsteps'
+import {
+  fadeInChapter4Tension,
+  fadeOutChapter4Tension,
+  stopChapter4Tension,
+} from '@/lib/chapter4Tension'
 
 const TEXT_STYLE = {
   fontSize: 24,
@@ -19,11 +24,26 @@ const INTRO_TITLE_HOLD_MS = 3000
 const INTRO_TITLE_FADE_S = 1.4
 const LINE_FADE_S = 0.4
 const INVESTIGATE_AFTER_LINE2_EXIT_MS = Math.ceil(LINE_FADE_S * 1000) + 80
+const TENSION_FADE_IN_MS = 1000
+const TENSION_FADE_OUT_MS = 1400
+const REVELATION_SUBTITLE_FADE_S = 0.85
+const REVELATION_LINE1_HOLD_MS = 1800
+const REVELATION_LINE2_HOLD_MS = 2200
+
+type RevealBeat = 'line1' | 'line2' | 'done'
 
 /** 三項關鍵線索（推理板觸發條件：帳冊、針筒、藥粉） */
 const KEY_CLUE_IDS = [3, 4, 5] as const
-const REVELATION_TEXT =
-  '柯老雄利用瑪啡徹底控制了娟娟，這時的娟娟已不再是完整的「人」，她變成了被藥物與恐懼操縱的木偶。'
+const REVELATION_LINE1 = '柯老雄利用瑪啡徹底控制了娟娟'
+const REVELATION_LINE2A = '這時的娟娟已不再是完整的「人」，'
+const REVELATION_LINE2B = '她變成了被藥物與恐懼操縱的木偶。'
+const REVELATION_SUBTITLE_STYLE = {
+  color: '#e8c870',
+  fontSize: '1.2rem',
+  letterSpacing: '0.28em',
+  lineHeight: 1.9,
+  textShadow: '0 0 40px rgba(232,200,112,0.22)',
+} as const
 const PUZZLE_QUESTION = '柯老雄房間藏著什麼秘密？'
 const BRIEFCASE_CAPACITY = 3
 const SCENE_HEIGHT = '70%'
@@ -106,10 +126,13 @@ export default function Chapter4Page() {
   const [briefcaseClues, setBriefcaseClues] = useState<Set<ClueId>>(new Set())
   const [activeClueId, setActiveClueId] = useState<ClueId | null>(null)
   const [showReveal, setShowReveal] = useState(false)
+  const [revealBeat, setRevealBeat] = useState<RevealBeat | null>(null)
   const line2HoldTimer = useRef<number | null>(null)
   const investigateTimer = useRef<number | null>(null)
   const line2RevealScheduled = useRef(false)
   const revealShownRef = useRef(false)
+  const navigatingToCh5Ref = useRef(false)
+  const revealTimelineRef = useRef<number[]>([])
 
   const canSolve = KEY_CLUE_IDS.every((id) => briefcaseClues.has(id))
   const activeClue = activeClueId ? getClue(activeClueId) : undefined
@@ -119,12 +142,52 @@ export default function Chapter4Page() {
   const briefcaseList = [...briefcaseClues]
 
   useEffect(() => {
-    return () => stopChapter4Footsteps()
+    return () => {
+      stopChapter4Footsteps()
+      if (!navigatingToCh5Ref.current) {
+        stopChapter4Tension()
+      }
+    }
   }, [])
 
   useEffect(() => {
     if (phase === 1) fadeInChapter4Footsteps()
   }, [phase])
+
+  useEffect(() => {
+    if (screen !== 'investigate') return
+    fadeInChapter4Tension(TENSION_FADE_IN_MS)
+  }, [screen])
+
+  useEffect(() => {
+    if (!showReveal) {
+      setRevealBeat(null)
+      revealTimelineRef.current.forEach((id) => window.clearTimeout(id))
+      revealTimelineRef.current = []
+      return
+    }
+
+    const fadeMs = Math.ceil(REVELATION_SUBTITLE_FADE_S * 1000)
+    const line1ToLine2 = fadeMs + REVELATION_LINE1_HOLD_MS
+    const line2ToDone = line1ToLine2 + fadeMs + fadeMs + REVELATION_LINE2_HOLD_MS
+    const navigateAt = line2ToDone + fadeMs
+
+    setRevealBeat('line1')
+
+    const schedule = (fn: () => void, delay: number) => {
+      const id = window.setTimeout(fn, delay)
+      revealTimelineRef.current.push(id)
+    }
+
+    schedule(() => setRevealBeat('line2'), line1ToLine2)
+    schedule(() => setRevealBeat('done'), line2ToDone)
+    schedule(() => goToChapter5(), navigateAt)
+
+    return () => {
+      revealTimelineRef.current.forEach((id) => window.clearTimeout(id))
+      revealTimelineRef.current = []
+    }
+  }, [showReveal])
 
   useEffect(() => {
     const t = window.setTimeout(() => setIntroVisible(false), INTRO_TITLE_HOLD_MS)
@@ -171,16 +234,13 @@ export default function Chapter4Page() {
   }, [phase, screen])
 
   useEffect(() => {
-    if (activeClueId === null && !showReveal) return
+    if (activeClueId === null) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (showReveal) setShowReveal(false)
-        else setActiveClueId(null)
-      }
+      if (e.key === 'Escape') setActiveClueId(null)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [activeClueId, showReveal])
+  }, [activeClueId])
 
   function openClue(id: ClueId) {
     setActiveClueId(id)
@@ -200,6 +260,15 @@ export default function Chapter4Page() {
     if (revealShownRef.current) return
     revealShownRef.current = true
     setShowReveal(true)
+  }
+
+  function goToChapter5() {
+    if (navigatingToCh5Ref.current) return
+    navigatingToCh5Ref.current = true
+    router.push('/chapter5')
+    window.setTimeout(() => {
+      fadeOutChapter4Tension(TENSION_FADE_OUT_MS)
+    }, 0)
   }
 
   function removeFromBriefcase() {
@@ -848,70 +917,57 @@ export default function Chapter4Page() {
               )}
             </AnimatePresence>
 
-            {/* 三項關鍵線索齊備時的揭曉 */}
+            {/* 三項關鍵線索齊備時的揭曉（opening 風格字幕，播畢自動進 chapter5） */}
             <AnimatePresence>
               {showReveal && (
                 <motion.div
                   key="reveal"
                   role="presentation"
-                  className="fixed inset-0 z-110 flex items-center justify-center p-6"
+                  className="pointer-events-none fixed inset-0 z-110 flex items-center justify-center p-6"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.25 }}
+                  transition={{ duration: 0.45 }}
                   style={{
-                    background: 'rgba(0,0,0,0.72)',
+                    background: 'rgba(0,0,0,0.78)',
                     backdropFilter: 'blur(6px)',
                   }}
-                  onClick={() => setShowReveal(false)}
                 >
-                  <motion.div
-                    role="dialog"
-                    aria-modal="true"
-                    initial={{ opacity: 0, y: 20, scale: 0.94 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 12, scale: 0.96 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-                    onClick={(e) => e.stopPropagation()}
-                    style={{
-                      background: 'linear-gradient(155deg, #1e1710 0%, #120e07 100%)',
-                      border: '1px solid rgba(200,160,55,0.45)',
-                      borderRadius: 14,
-                      maxWidth: 'min(92vw, 34rem)',
-                      padding: '32px 36px',
-                      boxShadow: '0 30px 100px rgba(0,0,0,0.85)',
-                    }}
+                  <div
+                    className="relative z-10 flex min-h-[8rem] w-full items-center justify-center px-4"
+                    style={{ maxWidth: 'min(92vw, 36rem)' }}
                   >
-                    <p
-                      className="text-center font-serif leading-relaxed"
-                      style={{
-                        color: '#e8c870',
-                        fontSize: '1.05rem',
-                        letterSpacing: '0.18em',
-                        lineHeight: 2,
-                      }}
-                    >
-                      {REVELATION_TEXT}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => router.push('/chapter5')}
-                      className="mt-6 w-full"
-                      style={{
-                        padding: '8px',
-                        background: 'rgba(200,160,55,0.1)',
-                        border: '1px solid rgba(200,160,55,0.35)',
-                        borderRadius: 7,
-                        color: '#a88030',
-                        fontSize: '0.65rem',
-                        letterSpacing: '0.3em',
-                        fontFamily: 'sans-serif',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      前往中元節之夜
-                    </button>
-                  </motion.div>
+                    <AnimatePresence mode="wait">
+                      {revealBeat === 'line1' && (
+                        <motion.p
+                          key="reveal-line1"
+                          initial={{ opacity: 0, y: -28 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -18 }}
+                          transition={{ duration: REVELATION_SUBTITLE_FADE_S, ease: 'easeOut' }}
+                          className="absolute text-center font-serif"
+                          style={REVELATION_SUBTITLE_STYLE}
+                        >
+                          {REVELATION_LINE1}
+                        </motion.p>
+                      )}
+                      {revealBeat === 'line2' && (
+                        <motion.p
+                          key="reveal-line2"
+                          initial={{ opacity: 0, x: -36 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: 28 }}
+                          transition={{ duration: REVELATION_SUBTITLE_FADE_S, ease: 'easeOut' }}
+                          className="absolute text-center font-serif"
+                          style={REVELATION_SUBTITLE_STYLE}
+                        >
+                          {REVELATION_LINE2A}
+                          <br />
+                          {REVELATION_LINE2B}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
