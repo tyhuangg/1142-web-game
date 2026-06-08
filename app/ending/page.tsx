@@ -15,7 +15,8 @@ const PRELUDE_LINES = [
 
 export default function Ending() {
   const [page, setPage] = useState<Page>("prelude");
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const tensionAudioRef = useRef<HTMLAudioElement>(null);
+const gulianhuaAudioRef = useRef<HTMLAudioElement>(null);
   const router = useRouter();
 
   function ending1() {
@@ -27,18 +28,35 @@ export default function Ending() {
   }
 
   useEffect(() => {
-    if (page !== "ending1" && page !== "ending2") return;
-
-    const audio = audioRef.current;
+    const audio = gulianhuaAudioRef.current;
     if (!audio) return;
+  
+    if (page === "ending1" || page === "ending2") {
+      audio.volume = 0.75;
+      audio.play().catch(() => {});
+    } else {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+  }, [page]);
 
-    audio.volume = 0.75;
-    audio.play().catch(() => {});
+  useEffect(() => {
+    const audio = tensionAudioRef.current;
+    if (!audio) return;
+  
+    if (page === "question") {
+      audio.volume = 0.55;
+      audio.play().catch(() => {});
+    } else {
+      audio.pause();
+      audio.currentTime = 0;
+    }
   }, [page]);
 
   return (
     <main className="relative min-h-screen w-full overflow-hidden bg-black text-[#e8c870] font-[serif] tracking-widest">
-      <audio ref={audioRef} src="/audio/ch1_gulianhua.mp3" loop />
+      <audio ref={tensionAudioRef} src="/audio/tensions.mp3" loop />
+      <audio ref={gulianhuaAudioRef} src="/audio/ch1_gulianhua.mp3" loop />
 
       <AnimatePresence mode="wait">
         {page === "prelude" && (
