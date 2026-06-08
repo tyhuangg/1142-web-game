@@ -1,140 +1,23 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
-
-type Page = "prelude" | "question" | "ending1" | "ending2";
-
-const PRELUDE_LINES = [
-  "你推理出了娟娟殺人的真相",
-  "現在變得瘋瘋癲癲的她，",
-  "殺人的原因究竟是什麼？",
-  "你究竟要如何處理這個案件？",
-];
 
 export default function Ending() {
-  const [page, setPage] = useState<Page>("prelude");
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const router = useRouter();
+  const [counter, setCounter] = useState(0);
 
   function ending1() {
-    setPage("ending1");
+    setCounter(1);
   }
 
   function ending2() {
-    setPage("ending2");
+    setCounter(2);
   }
-
-  useEffect(() => {
-    if (page !== "ending1" && page !== "ending2") return;
-
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    audio.volume = 0.75;
-    audio.play().catch(() => {});
-  }, [page]);
 
   return (
     <main className="relative min-h-screen w-full overflow-hidden bg-black text-[#e8c870] font-[serif] tracking-widest">
-      <audio ref={audioRef} src="/audio/ch1_gulianhua.mp3" loop />
-
       <AnimatePresence mode="wait">
-        {page === "prelude" && (
-          <motion.section
-            key="prelude"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.65 }}
-            onClick={() => setPage("question")}
-            className="absolute inset-0 flex flex-col items-center justify-center px-6 overflow-hidden cursor-pointer"
-          >
-            {/* 背景圖片：娟娟房間 */}
-            <div
-              className="absolute inset-0"
-              style={{
-                backgroundImage: "url('/CH5/room.png')",
-                backgroundSize: "cover",
-                backgroundPosition: "center 45%",
-                filter: "brightness(0.16) blur(1px)",
-                transform: "scale(1.03)",
-              }}
-            />
-
-            <div className="absolute inset-0 bg-black/65" />
-
-            <div
-              className="absolute inset-0"
-              style={{
-                background:
-                  "radial-gradient(circle at center, rgba(200,150,45,0.12), transparent 48%)",
-              }}
-            />
-
-            <motion.div
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.9 }}
-              className="relative z-10 flex flex-col items-center text-center px-8"
-              style={{ maxWidth: 620 }}
-            >
-              <p
-                style={{
-                  color: "#6a4820",
-                  fontSize: "0.55rem",
-                  letterSpacing: "0.55em",
-                  fontFamily: "sans-serif",
-                  marginBottom: 30,
-                }}
-              >
-                FINAL CASE
-              </p>
-
-              <div className="flex flex-col items-center gap-5">
-                {PRELUDE_LINES.map((line, index) => (
-                  <motion.p
-                    key={line}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      delay: 0.4 + index * 0.75,
-                      duration: 0.85,
-                    }}
-                    style={{
-                      color: index === 0 ? "#d8c8a0" : "#7a6848",
-                      fontSize: index === 0 ? "1.25rem" : "0.95rem",
-                      letterSpacing: "0.28em",
-                      fontFamily: "serif",
-                      lineHeight: 2,
-                      textAlign: "center",
-                      textShadow: "0 0 40px rgba(216,200,160,0.18)",
-                    }}
-                  >
-                    {line}
-                  </motion.p>
-                ))}
-              </div>
-            </motion.div>
-
-            <motion.p
-              animate={{ opacity: [0.25, 0.7, 0.25] }}
-              transition={{ duration: 2.8, repeat: Infinity }}
-              className="absolute bottom-8 left-1/2 -translate-x-1/2 pointer-events-none z-10"
-              style={{
-                color: "#3e2c0e",
-                fontSize: "0.52rem",
-                letterSpacing: "0.35em",
-                fontFamily: "sans-serif",
-              }}
-            >
-              點擊進入最終提問
-            </motion.p>
-          </motion.section>
-        )}
-
-        {page === "question" && (
+        {counter === 0 && (
           <motion.section
             key="question"
             initial={{ opacity: 0 }}
@@ -155,6 +38,7 @@ export default function Ending() {
               }}
             />
 
+            {/* 壓暗與舞台光 */}
             <div className="absolute inset-0 bg-black/60" />
 
             <div
@@ -165,6 +49,7 @@ export default function Ending() {
               }}
             />
 
+            {/* 上方標題 */}
             <motion.div
               initial={{ opacity: 0, y: -12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -179,6 +64,7 @@ export default function Ending() {
               </h1>
             </motion.div>
 
+            {/* 中央內容卡片 */}
             <motion.div
               initial={{ opacity: 0, y: 24 }}
               animate={{ opacity: 1, y: 0 }}
@@ -198,15 +84,9 @@ export default function Ending() {
                 請做出最後的判斷
               </p>
 
-              <h2 className="text-2xl md:text-5xl leading-relaxed md:leading-[1.6] mb-6 text-[#d8c8a0]">
+              <h2 className="text-2xl md:text-5xl leading-relaxed md:leading-[1.6] mb-14 text-[#d8c8a0]">
                 請問娟娟殺人的動機是什麼？
               </h2>
-
-              <div className="mb-12 inline-flex items-center justify-center border border-[#b48737]/35 bg-black/45 px-5 py-2">
-                <p className="text-xs md:text-sm text-[#e8c870]/55 tracking-[0.28em] font-sans">
-                  你的選擇將導向不同結局
-                </p>
-              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-8">
                 <motion.button
@@ -290,7 +170,7 @@ export default function Ending() {
           </motion.section>
         )}
 
-        {page === "ending1" && (
+        {counter === 1 && (
           <motion.section
             key="ending1"
             initial={{ opacity: 0 }}
@@ -322,8 +202,7 @@ export default function Ending() {
               </h1>
 
               <p className="text-sm md:text-base text-[#d8c8a0]/75 leading-loose">
-                娟娟已被折磨得癲狂，你將她送進了瘋人院。
-                此後瘋人院中的病房一角，夜夜唱響孤戀花。
+                瘋人院中的病房一角，夜夜唱響孤戀花。
               </p>
             </motion.div>
 
@@ -339,30 +218,10 @@ export default function Ending() {
                 className="max-h-[72vh] w-auto object-contain opacity-90"
               />
             </motion.div>
-            <motion.button
-  onClick={() => router.push("/opening")}
-  whileHover={{ scale: 1.04, y: -3 }}
-  whileTap={{ scale: 0.96 }}
-  className="
-    absolute bottom-16 right-4 -translate-x-1/2 z-20
-    px-6 py-3
-    border border-[#b48737]/60
-    bg-black/60
-    text-[#e8c870]
-    hover:bg-[#e8c870]
-    hover:text-black
-    transition-all duration-300
-    text-sm
-    tracking-[0.32em]
-    font-sans
-  "
->
-  回到開場 》
-</motion.button>
           </motion.section>
         )}
 
-        {page === "ending2" && (
+        {counter === 2 && (
           <motion.section
             key="ending2"
             initial={{ opacity: 0 }}
@@ -394,7 +253,7 @@ export default function Ending() {
               </h1>
 
               <p className="text-sm md:text-base text-[#d8c8a0]/75 leading-loose">
-                你同情她的遭遇而將真相隱瞞了下來，她不至於受到嚴刑的處罰，她此後將繼續遭遇同樣的生活。
+                你同情她的遭遇，而她繼續著不變的生活。
               </p>
             </motion.div>
 
@@ -410,26 +269,6 @@ export default function Ending() {
                 className="max-h-[72vh] w-auto object-contain opacity-90"
               />
             </motion.div>
-            <motion.button
-  onClick={() => router.push("/opening")}
-  whileHover={{ scale: 1.04, y: -3 }}
-  whileTap={{ scale: 0.96 }}
-  className="
-    absolute bottom-16 right-4 -translate-x-1/2 z-20
-    px-6 py-3
-    border border-[#b48737]/60
-    bg-black/60
-    text-[#e8c870]
-    hover:bg-[#e8c870]
-    hover:text-black
-    transition-all duration-300
-    text-sm
-    tracking-[0.32em]
-    font-sans
-  "
->
-  回到開場 》
-</motion.button>
           </motion.section>
         )}
       </AnimatePresence>

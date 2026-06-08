@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
 
 type Page = "prelude" | "question" | "ending1" | "ending2";
 
@@ -16,7 +15,6 @@ const PRELUDE_LINES = [
 export default function Ending() {
   const [page, setPage] = useState<Page>("prelude");
   const audioRef = useRef<HTMLAudioElement>(null);
-  const router = useRouter();
 
   function ending1() {
     setPage("ending1");
@@ -322,8 +320,7 @@ export default function Ending() {
               </h1>
 
               <p className="text-sm md:text-base text-[#d8c8a0]/75 leading-loose">
-                娟娟已被折磨得癲狂，你將她送進了瘋人院。
-                此後瘋人院中的病房一角，夜夜唱響孤戀花。
+                瘋人院中的病房一角，夜夜唱響孤戀花。
               </p>
             </motion.div>
 
@@ -339,26 +336,6 @@ export default function Ending() {
                 className="max-h-[72vh] w-auto object-contain opacity-90"
               />
             </motion.div>
-            <motion.button
-  onClick={() => router.push("/opening")}
-  whileHover={{ scale: 1.04, y: -3 }}
-  whileTap={{ scale: 0.96 }}
-  className="
-    absolute bottom-16 right-4 -translate-x-1/2 z-20
-    px-6 py-3
-    border border-[#b48737]/60
-    bg-black/60
-    text-[#e8c870]
-    hover:bg-[#e8c870]
-    hover:text-black
-    transition-all duration-300
-    text-sm
-    tracking-[0.32em]
-    font-sans
-  "
->
-  回到開場 》
-</motion.button>
           </motion.section>
         )}
 
@@ -394,7 +371,7 @@ export default function Ending() {
               </h1>
 
               <p className="text-sm md:text-base text-[#d8c8a0]/75 leading-loose">
-                你同情她的遭遇而將真相隱瞞了下來，她不至於受到嚴刑的處罰，她此後將繼續遭遇同樣的生活。
+                你同情她的遭遇，而她繼續著不變的生活。
               </p>
             </motion.div>
 
@@ -410,26 +387,6 @@ export default function Ending() {
                 className="max-h-[72vh] w-auto object-contain opacity-90"
               />
             </motion.div>
-            <motion.button
-  onClick={() => router.push("/opening")}
-  whileHover={{ scale: 1.04, y: -3 }}
-  whileTap={{ scale: 0.96 }}
-  className="
-    absolute bottom-16 right-4 -translate-x-1/2 z-20
-    px-6 py-3
-    border border-[#b48737]/60
-    bg-black/60
-    text-[#e8c870]
-    hover:bg-[#e8c870]
-    hover:text-black
-    transition-all duration-300
-    text-sm
-    tracking-[0.32em]
-    font-sans
-  "
->
-  回到開場 》
-</motion.button>
           </motion.section>
         )}
       </AnimatePresence>
