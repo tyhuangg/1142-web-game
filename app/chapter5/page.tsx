@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -13,12 +13,25 @@ type Choice = {
 
 export default function Chapter5() {
   const router = useRouter();
+  const tensionAudioRef = useRef<HTMLAudioElement>(null);
 
   const [page, setPage] = useState<Page>("title");
   const [answer, setAnswer] = useState<number[]>([]);
   const [ACount, setACount] = useState(0);
   const [BCount, setBCount] = useState(0);
   const [message, setMessage] = useState("");
+  useEffect(() => {
+    const audio = tensionAudioRef.current;
+    if (!audio) return;
+  
+    if (page === "game") {
+      audio.volume = 0.55;
+      audio.play().catch(() => {});
+    } else {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+  }, [page]);
 
   const choices: Choice[] = [
     {
@@ -119,6 +132,7 @@ export default function Chapter5() {
       className="relative h-full w-full overflow-hidden select-none"
       style={{ background: "#000" }}
     >
+      <audio ref={tensionAudioRef} src="/audio/tensions.mp3" loop />
       {/* 全頁共用背景：娟娟房間 */}
       <div
         className="absolute inset-0"
