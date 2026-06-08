@@ -358,7 +358,7 @@ const gulianhuaAudioRef = useRef<HTMLAudioElement>(null);
               />
             </motion.div>
             <motion.button
-  onClick={() => router.push("/opening")}
+  onClick={() => router.push("/")}
   whileHover={{ scale: 1.04, y: -3 }}
   whileTap={{ scale: 0.96 }}
   className="
@@ -429,7 +429,7 @@ const gulianhuaAudioRef = useRef<HTMLAudioElement>(null);
               />
             </motion.div>
             <motion.button
-  onClick={() => router.push("/opening")}
+  onClick={() => router.push("/")}
   whileHover={{ scale: 1.04, y: -3 }}
   whileTap={{ scale: 0.96 }}
   className="
