@@ -7,10 +7,10 @@ import { useRouter } from 'next/navigation'
 const CUPS = [
   { id: 1, label: '杯子 1', hasLipstick: true, description: '杯緣留有鮮紅且凌亂的口紅印。', image: '/images/ch2_glass1.jpg', position: { left: '14%', top: '12%' } },
   { id: 2, label: '杯子 2', hasLipstick: true, description: '杯緣留有口紅印。', image: '/images/ch2_glass2.jpg', position: { left: '32%', top: '10%' } },
-  { id: 3, label: '杯子 3', hasLipstick: false, description: '口紅印已經暈開，顯示飲用者情緒不穩。', image: '/images/ch2_glass3.jpg', position: { left: '50%', top: '14%' } },
+  { id: 3, label: '杯子 3', hasLipstick: false, description: '口紅印已經暈開。', image: '/images/ch2_glass3.jpg', position: { left: '50%', top: '14%' } },
   { id: 4, label: '杯子 4', hasLipstick: false, description: '杯口殘留著淡淡的血絲與紅印。', image: '/images/ch2_glass4.jpg', position: { left: '68%', top: '11%' } },
   { id: 5, label: '杯子 5', hasLipstick: true, description: '杯身濕漉漉的，口紅印清晰可見。', image: '/images/ch2_glass5.jpg', position: { left: '18%', top: '42%' } },
-  { id: 6, label: '杯子 6', hasLipstick: true, description: '杯子乾淨但有微妙痕跡。', image: '/images/ch2_glass6.jpg', position: { left: '36%', top: '40%' } },
+  { id: 6, label: '杯子 6', hasLipstick: true, description: '杯口碎裂，好似娟涓的心。', image: '/images/ch2_glass6.jpg', position: { left: '36%', top: '40%' } },
   { id: 7, label: '杯子 7', hasLipstick: true, description: '最後一杯酒，印記顯得支離破碎。', image: '/images/ch2_glass7.jpg', position: { left: '56%', top: '40%' } },
   { id: 8, label: '杯子 8', hasLipstick: true, description: '這杯酒似乎混雜了淚水。', image: '/images/ch2_glass8.jpg', position: { left: '74%', top: '38%' } },
 ]
@@ -42,6 +42,12 @@ export default function Chapter2() {
   }
 
   function collectCup(id: number) {
+    // 检查是否是错误的杯子（id 3 或 4）
+    if (id === 3 || id === 4) {
+      setWrong(true)
+      window.setTimeout(() => setWrong(false), 1500)
+      return
+    }
     setInventory((prev) => new Set(prev).add(id))
     setSelectedCupId(id)
   }
@@ -49,13 +55,16 @@ export default function Chapter2() {
   function submitAnswer() {
     if (answer.trim() === '6' && canSolve) {
       setIsSolved(true)
-      setEndingVisible(true)
-      setEndingIndex(0)
+      // 延迟 8 秒後顯示結局頁面
+      window.setTimeout(() => {
+        setEndingVisible(true)
+        setEndingIndex(0)
+      }, 2500)
       return
     }
 
     setWrong(true)
-    window.setTimeout(() => setWrong(false), 700)
+    window.setTimeout(() => setWrong(false), 1500)
   }
 
   // keyboard navigation for ending pages
@@ -187,8 +196,8 @@ export default function Chapter2() {
             </span>
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
-            {CUPS.slice(0, 6).map((cup) => {
+          <div className="grid grid-cols-4 gap-2">
+            {CUPS.slice(0, 8).map((cup) => {
               const collected = inventory.has(cup.id)
               return (
                 <button
@@ -208,19 +217,11 @@ export default function Chapter2() {
             })}
           </div>
 
-          {collectedLips > 0 && (
-            <div className="rounded-3xl border border-white/10 bg-slate-950/60 p-4">
-              <p className="text-xs uppercase tracking-[0.4em] text-slate-400">已收集口紅杯</p>
-              <p className="mt-1 text-3xl font-serif text-amber-100">{collectedLips} / {TARGET_IDS.length}</p>
-              <p className="mt-2 text-sm leading-relaxed text-slate-300">點擊畫面上的杯子，收集六杯帶有口紅印的證據。</p>
-            </div>
-          )}
+
 
             <div className="rounded-3xl border border-white/10 bg-slate-950/60 p-4 relative">
             {selectedCup ? (
               <>
-                <p className="text-xs uppercase tracking-[0.4em] text-slate-400">當前杯子</p>
-                <p className="mt-2 text-lg font-serif text-amber-100">{selectedCup.label}</p>
                 <p className="mt-2 text-sm leading-relaxed text-slate-300">{selectedCup.description}</p>
                 {/* 遊戲風格提示：根據是否有口紅顯示不同提示 */}
                 <div className="mt-4 inline-flex items-center gap-3 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
@@ -251,32 +252,16 @@ export default function Chapter2() {
             </span>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-slate-950/70 p-6 flex-1 flex flex-col justify-between gap-4">
-            <div>
-              <p className="text-sm text-slate-400">目前收集到的杯子數量</p>
-              <p className="mt-1 text-3xl font-serif text-amber-100">{inventory.size} / 8</p>
-              {/* <p className="mt-3 text-sm text-slate-300">收集全部 6 杯口紅杯後，即可解答她喝了幾杯。</p> */}
-            </div>
-
-            <div className="space-y-3">
+          <div className="rounded-3xl border border-white/10 bg-slate-950/70 p-6 flex-1 flex flex-col gap-4 overflow-y-auto">
+            <div className="space-y-3 flex-shrink-0">
               <div className="flex items-center gap-3">
                 <span className="text-lg">她喝了</span>
                 <input
                   type="number"
                   value={answer}
-                  readOnly
-                  onKeyDown={(e) => {
-                    if (!canSolve) return
-                    if (e.key === 'ArrowUp') {
-                      e.preventDefault()
-                      adjustAnswer(1)
-                    } else if (e.key === 'ArrowDown') {
-                      e.preventDefault()
-                      adjustAnswer(-1)
-                    }
-                  }}
+                  onChange={(e) => setAnswer(e.target.value)}
                   disabled={!canSolve}
-                  placeholder={canSolve ? '...' : '需收集 6 杯'}
+                  placeholder=""
                   className="w-20 rounded-xl border border-amber-500/30 bg-black/40 px-3 py-2 text-center text-2xl text-amber-100 outline-none"
                 />
                 <span className="text-lg">杯</span>
@@ -292,27 +277,22 @@ export default function Chapter2() {
               </button>
               {wrong && <p className="text-sm text-red-300">答案不對，再確認你收集到的線索。</p>}
             </div>
-          </div>
 
-          <AnimatePresence>
-            {isSolved && (
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 16 }}
-                className="rounded-3xl border border-emerald-500/40 bg-emerald-900/30 p-5 text-amber-100"
-              >
-                <p className="text-sm uppercase tracking-[0.35em] text-emerald-200">解謎完成</p>
-                <p className="mt-2 text-lg font-serif">真相：柯老雄在三一三號房強迫娟娟飲下六杯紹興酒。</p>
-                <button
-                  onClick={() => router.push('/chapter3')}
-                  className="mt-4 inline-flex rounded-full bg-amber-400 px-4 py-2 text-sm text-slate-950 hover:bg-amber-300"
+            <AnimatePresence>
+              {isSolved && (
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 16 }}
+                  className="rounded-3xl border border-emerald-500/40 bg-emerald-900/30 p-5 text-amber-100 flex-shrink-0"
                 >
-                  前往第三關
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                  <p className="text-sm uppercase tracking-[0.35em] text-emerald-200">解謎完成</p>
+                  <p className="mt-2 text-base font-serif leading-relaxed">真相：柯老雄在三一三號房強迫娟娟飲下六杯紹興酒。</p> 
+
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
         </div>
       </div>
