@@ -25,6 +25,14 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Responsive base font — scales all rem values */
+@media (max-height: 700px) {
+  html { font-size: 14px; }
+}
+@media (min-width: 1920px) {
+  html { font-size: 18px; }
+}
+
 /* ── Film grain overlay ─────────────────────────────────────────────────── */
 .film-grain {
   position: absolute;

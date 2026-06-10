@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 const CUPS = [
   { id: 1, label: '杯子 1', hasLipstick: true, description: '杯緣留有鮮紅且凌亂的口紅印。', image: '/images/ch2_glass1.jpg', position: { left: '14%', top: '12%' } },
   { id: 2, label: '杯子 2', hasLipstick: true, description: '杯緣留有口紅印。', image: '/images/ch2_glass2.jpg', position: { left: '32%', top: '10%' } },
-  { id: 3, label: '杯子 3', hasLipstick: false, description: '口紅印已經暈開。', image: '/images/ch2_glass3.jpg', position: { left: '50%', top: '14%' } },
+  { id: 3, label: '杯子 3', hasLipstick: false, description: '杯緣乾淨，沒有任何口紅痕跡。', image: '/images/ch2_glass3.jpg', position: { left: '50%', top: '14%' } },
   { id: 4, label: '杯子 4', hasLipstick: false, description: '杯口殘留著淡淡的血絲與紅印。', image: '/images/ch2_glass4.jpg', position: { left: '68%', top: '11%' } },
   { id: 5, label: '杯子 5', hasLipstick: true, description: '杯身濕漉漉的，口紅印清晰可見。', image: '/images/ch2_glass5.jpg', position: { left: '18%', top: '42%' } },
   { id: 6, label: '杯子 6', hasLipstick: true, description: '杯口碎裂，好似娟涓的心。', image: '/images/ch2_glass6.jpg', position: { left: '36%', top: '40%' } },
@@ -23,10 +23,14 @@ export default function Chapter2() {
   const [selectedCupId, setSelectedCupId] = useState<number | null>(null)
   const [answer, setAnswer] = useState('')
   const [wrong, setWrong] = useState(false)
+  const [cupError, setCupError] = useState(false)
+  const [excluded, setExcluded] = useState<Set<number>>(new Set())
   const [isSolved, setIsSolved] = useState(false)
   const [endingVisible, setEndingVisible] = useState(false)
   const [endingIndex, setEndingIndex] = useState(0)
   const [introVisible, setIntroVisible] = useState(true)
+  const [showEvidence, setShowEvidence] = useState(false)
+  const [showLogic, setShowLogic] = useState(false)
   const dripAudio = useRef<HTMLAudioElement | null>(null)
   const drip2Audio = useRef<HTMLAudioElement | null>(null)
   const advanceLock = useRef(false)
@@ -35,17 +39,11 @@ export default function Chapter2() {
   const collectedLips = TARGET_IDS.filter((id) => inventory.has(id)).length
   const canSolve = collectedLips === TARGET_IDS.length
 
-  function adjustAnswer(delta: number) {
-    const cur = parseInt(answer || '0', 10) || 0
-    const next = Math.max(0, Math.min(8, cur + delta))
-    setAnswer(String(next))
-  }
-
   function collectCup(id: number) {
-    // 检查是否是错误的杯子（id 3 或 4）
     if (id === 3 || id === 4) {
-      setWrong(true)
-      window.setTimeout(() => setWrong(false), 1500)
+      setExcluded((prev) => new Set(prev).add(id))
+      setCupError(true)
+      window.setTimeout(() => setCupError(false), 1500)
       return
     }
     setInventory((prev) => new Set(prev).add(id))
@@ -59,7 +57,7 @@ export default function Chapter2() {
       window.setTimeout(() => {
         setEndingVisible(true)
         setEndingIndex(0)
-      }, 2500)
+      }, 5000)
       return
     }
 
@@ -97,15 +95,8 @@ export default function Chapter2() {
     drip2Audio.current.loop = true
     drip2Audio.current.volume = 0.65
 
-    const startDrip = () => {
-      if (!isSolved) {
-        drip2Audio.current?.pause()
-        dripAudio.current?.play().catch(() => {})
-      }
-    }
-
     const playOnInteraction = () => {
-      startDrip()
+      dripAudio.current?.play().catch(() => {})
       window.removeEventListener('pointerdown', playOnInteraction)
     }
 
@@ -116,18 +107,14 @@ export default function Chapter2() {
       dripAudio.current?.pause()
       drip2Audio.current?.pause()
     }
-  }, [isSolved])
+  }, [])
 
   useEffect(() => {
-    if (isSolved) {
-      dripAudio.current?.pause()
-      if (drip2Audio.current) {
-        drip2Audio.current.currentTime = 0
-        drip2Audio.current.play().catch(() => {})
-      }
-    } else {
-      drip2Audio.current?.pause()
-      dripAudio.current?.play().catch(() => {})
+    if (!isSolved) return
+    dripAudio.current?.pause()
+    if (drip2Audio.current) {
+      drip2Audio.current.currentTime = 0
+      drip2Audio.current.play().catch(() => {})
     }
   }, [isSolved])
 
@@ -153,7 +140,7 @@ export default function Chapter2() {
         </p>
       </div>
 
-      <div className="absolute inset-x-0 top-24 bottom-[38%] z-10">
+      <div className="absolute inset-x-0 top-24 z-10" style={{ bottom: 'clamp(100px, 14vh, 150px)' }}>
         {CUPS.map((cup) => {
           const collected = inventory.has(cup.id)
           const selected = selectedCupId === cup.id
@@ -169,8 +156,8 @@ export default function Chapter2() {
               style={{
                 left: cup.position.left,
                 top: cup.position.top,
-                width: 110,
-                height: 110,
+                width: 'clamp(100px, 10vw, 130px)',
+                height: 'clamp(100px, 10vw, 130px)',
               }}
             >
               <img src={cup.image} alt={cup.label} className="h-full w-full object-contain" />
@@ -179,123 +166,256 @@ export default function Chapter2() {
         })}
         {/* 閃爍的黃底提示區塊（顯示在照片區下方） */}
         <div className="absolute left-1/2 bottom-4 z-20 -translate-x-1/2 transform">
-          <div className="animate-pulse rounded-xl bg-amber-300/90 px-6 py-2 text-sm font-semibold text-slate-950 shadow-lg">
-            請注意不同酒杯的杯緣
-          </div>
+          <AnimatePresence mode="wait">
+            {cupError ? (
+              <motion.div
+                key="cup-error"
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="rounded-xl bg-red-500/90 px-6 py-2 text-sm font-semibold text-white shadow-lg"
+              >
+                這個杯子沒有口紅印，不是目標證物
+              </motion.div>
+            ) : (
+              <motion.div
+                key="cup-hint"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="animate-pulse rounded-xl bg-amber-300/90 px-6 py-2 text-sm font-semibold text-slate-950 shadow-lg"
+              >
+                請注意不同酒杯的杯緣
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
-      <div className="absolute inset-x-0 bottom-0 z-10 h-[38%] flex border-t border-white/10 bg-black/70 backdrop-blur-sm">
-        <div className="flex flex-col overflow-hidden" style={{ width: '50%', padding: '14px 16px', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
-          <div className="flex items-baseline gap-2 mb-3 flex-none">
-            <h2 style={{ color: '#dcc070', fontSize: '0.9rem', letterSpacing: '0.22em' }}>
-              Evidence
-            </h2>
-            <span style={{ color: '#5a4820', fontSize: '0.55rem', letterSpacing: '0.18em' }}>
-              證據欄
-            </span>
+      {/* ── 底部工具列 ── */}
+      <div className="absolute inset-x-0 bottom-0 z-10 flex items-center gap-4 px-6"
+           style={{ height: 'clamp(100px, 14vh, 150px)', background: 'rgba(8,7,14,0.97)', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+
+        {/* Evidence button */}
+        <motion.button
+          onClick={() => setShowEvidence(true)}
+          className="flex-1 flex flex-col justify-center gap-3"
+          whileHover={{ scale: 1.02, backgroundColor: 'rgba(200,160,55,0.07)' }}
+          whileTap={{ scale: 0.97 }}
+          style={{
+            height: 'clamp(74px, 10vh, 110px)', background: 'rgba(200,160,55,0.04)',
+            border: '1px solid rgba(200,160,55,0.18)', borderRadius: 10,
+            padding: '0 22px', cursor: 'pointer',
+          }}
+        >
+          <div className="flex items-baseline gap-2">
+            <span style={{ color: '#dcc070', fontSize: '1rem', letterSpacing: '0.22em', fontFamily: 'serif' }}>Evidence</span>
+            <span style={{ color: '#5a4820', fontSize: '0.62rem', letterSpacing: '0.18em', fontFamily: 'sans-serif' }}>證據欄</span>
           </div>
-
-          <div className="grid grid-cols-4 gap-2">
-            {CUPS.slice(0, 8).map((cup) => {
-              const collected = inventory.has(cup.id)
-              return (
-                <button
-                  key={cup.id}
-                  onClick={() => collected && setSelectedCupId(cup.id)}
-                  disabled={!collected}
-                  className={`h-24 rounded-lg border p-2 text-left transition ${
-                    collected ? 'border-amber-400/50 bg-amber-400/10 hover:bg-amber-400/15' : 'border-white/10 bg-white/5 text-slate-500'
-                  }`}
-                >
-                  <p className="text-[0.62rem] uppercase tracking-[0.2em] text-slate-400">{cup.label}</p>
-                  <p className={`mt-2 text-sm font-semibold ${collected ? 'text-slate-100' : 'text-slate-500'}`}>
-                    {collected ? '已收集' : '未收集'}
-                  </p>
-                </button>
-              )
-            })}
+          <div className="flex gap-2">
+            {CUPS.map(cup => (
+              <div key={cup.id} style={{
+                width: 7, height: 7, borderRadius: '50%',
+                background: inventory.has(cup.id) ? '#c8a030' : excluded.has(cup.id) ? 'rgba(180,60,60,0.5)' : 'rgba(90,72,30,0.3)',
+                boxShadow: inventory.has(cup.id) ? '0 0 5px rgba(200,160,48,0.6)' : 'none',
+                transition: 'all 0.3s',
+              }} />
+            ))}
           </div>
+        </motion.button>
 
-
-
-            <div className="rounded-3xl border border-white/10 bg-slate-950/60 p-4 relative">
-            {selectedCup ? (
-              <>
-                <p className="mt-2 text-sm leading-relaxed text-slate-300">{selectedCup.description}</p>
-                {/* 遊戲風格提示：根據是否有口紅顯示不同提示 */}
-                <div className="mt-4 inline-flex items-center gap-3 rounded-lg bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
-                  <div className={`inline-flex h-8 w-8 items-center justify-center rounded-full ${selectedCup.hasLipstick ? 'bg-amber-400/20' : 'bg-slate-700/20'} animate-bounce`}>💡</div>
-                  <div>
-                    {selectedCup.hasLipstick ? (
-                      <p className="font-semibold">提示：杯緣有口紅印，可能屬於受害者。</p>
-                    ) : (
-                      <p className="font-semibold">提示：杯緣乾淨，可能是施暴者所用。</p>
-                    )}
-                    <p className="text-xs text-slate-400">（可作為推理的輔助線索）</p>
-                  </div>
-                </div>
-              </>
+        {/* Logic Board button */}
+        <motion.button
+          onClick={() => setShowLogic(true)}
+          className="flex-1 flex flex-col justify-center gap-3"
+          whileHover={{ scale: 1.02, backgroundColor: canSolve ? 'rgba(200,150,45,0.1)' : 'rgba(200,160,55,0.07)' }}
+          whileTap={{ scale: 0.97 }}
+          style={{
+            height: 'clamp(74px, 10vh, 110px)',
+            background: canSolve ? 'rgba(200,150,45,0.07)' : 'rgba(200,160,55,0.04)',
+            border: `1px solid ${canSolve ? 'rgba(200,150,45,0.4)' : 'rgba(200,160,55,0.18)'}`,
+            borderRadius: 10, padding: '0 22px', cursor: 'pointer',
+            transition: 'border-color 0.4s, background 0.4s',
+            boxShadow: canSolve ? '0 0 18px rgba(200,150,45,0.1)' : 'none',
+          }}
+        >
+          <div className="flex items-baseline gap-2">
+            <span style={{ color: canSolve ? '#dcc070' : '#4a4858', fontSize: '1rem', letterSpacing: '0.22em', fontFamily: 'serif', transition: 'color 0.4s' }}>Logic Board</span>
+            <span style={{ color: '#5a4820', fontSize: '0.62rem', letterSpacing: '0.18em', fontFamily: 'sans-serif' }}>推理板</span>
+          </div>
+          <AnimatePresence>
+            {canSolve ? (
+              <motion.span key="ready" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                style={{ color: '#c8a030', fontSize: '0.6rem', letterSpacing: '0.18em', fontFamily: 'sans-serif' }}>
+                線索齊全　可提交答案
+              </motion.span>
             ) : (
-              <p className="text-sm text-slate-400">點擊任意杯子查看它的線索，並將它收入囊中。</p>
+              <motion.span key="waiting" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                style={{ color: '#3a3848', fontSize: '0.6rem', letterSpacing: '0.18em', fontFamily: 'sans-serif' }}>
+                蒐集所有杯子以解鎖推理
+              </motion.span>
             )}
-          </div>
-        </div>
+          </AnimatePresence>
+        </motion.button>
+      </div>
 
-        <div className="flex flex-col overflow-hidden" style={{ width: '50%', padding: '14px 18px' }}>
-          <div className="flex items-baseline gap-2 mb-3 flex-none">
-            <h2 style={{ color: '#dcc070', fontSize: '0.9rem', letterSpacing: '0.22em' }}>
-              Logic Board
-            </h2>
-            <span style={{ color: '#5a4820', fontSize: '0.55rem', letterSpacing: '0.18em' }}>
-              推理板
-            </span>
-          </div>
+      {/* ── Evidence panel modal ── */}
+      <AnimatePresence>
+        {showEvidence && (
+          <motion.div key="evidence-panel" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="absolute inset-0 z-20 flex items-center justify-center"
+            style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(5px)' }}
+            onClick={() => setShowEvidence(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 26, scale: 0.93 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 14, scale: 0.96 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+              onClick={e => e.stopPropagation()}
+              style={{
+                background: 'linear-gradient(155deg, #1e1710 0%, #120e07 100%)',
+                border: '1px solid rgba(200,160,55,0.38)', borderRadius: 14,
+                width: 'min(560px, 92vw)', padding: '24px 28px', boxShadow: '0 30px 100px rgba(0,0,0,0.8)',
+              }}
+            >
+              <div className="flex items-baseline justify-between mb-5">
+                <div className="flex items-baseline gap-2">
+                  <h2 style={{ color: '#dcc070', fontSize: '0.9rem', letterSpacing: '0.22em', fontFamily: 'serif' }}>Evidence</h2>
+                  <span style={{ color: '#5a4820', fontSize: '0.55rem', letterSpacing: '0.18em', fontFamily: 'sans-serif' }}>證據欄</span>
+                </div>
+                <button onClick={() => setShowEvidence(false)}
+                  style={{ color: '#5a4820', fontSize: '1rem', background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+              </div>
+              <div className="grid grid-cols-4 gap-2 mb-4">
+                {CUPS.map(cup => {
+                  const collected = inventory.has(cup.id)
+                  const isExcluded = excluded.has(cup.id)
+                  return (
+                    <button key={cup.id}
+                      onClick={() => { if (collected) setSelectedCupId(cup.id) }}
+                      disabled={!collected && !isExcluded}
+                      className={`rounded-lg border p-2 text-left transition ${
+                        collected ? 'border-amber-400/50 bg-amber-400/10 hover:bg-amber-400/15'
+                        : isExcluded ? 'border-slate-600/50 bg-slate-800/40'
+                        : 'border-white/10 bg-white/5'
+                      }`}
+                      style={{ height: 72 }}
+                    >
+                      <p style={{ fontSize: '0.55rem', letterSpacing: '0.18em', color: isExcluded ? '#6b7280' : '#94a3b8', textDecoration: isExcluded ? 'line-through' : 'none' }}>
+                        {cup.label}
+                      </p>
+                      <p style={{ marginTop: 6, fontSize: '0.65rem', fontWeight: 600, color: collected ? '#f1f5f9' : isExcluded ? '#6b7280' : '#6b7280' }}>
+                        {collected ? '已收集' : isExcluded ? '已排除' : '未檢查'}
+                      </p>
+                    </button>
+                  )
+                })}
+              </div>
+              {selectedCup && (
+                <div style={{ padding: '12px 14px', background: 'rgba(200,160,55,0.055)', border: '1px solid rgba(200,160,55,0.16)', borderRadius: 8 }}>
+                  <p style={{ color: '#d8cca8', fontSize: '0.72rem', letterSpacing: '0.12em', fontFamily: 'serif', lineHeight: 1.8 }}>
+                    {selectedCup.description}
+                  </p>
+                  <p style={{ color: '#9a7a38', fontSize: '0.6rem', letterSpacing: '0.12em', fontFamily: 'sans-serif', marginTop: 6 }}>
+                    💡　{selectedCup.hasLipstick ? '杯緣有口紅印，可能屬於受害者。' : '杯緣乾淨，可能是施暴者所用。'}
+                  </p>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-          <div className="rounded-3xl border border-white/10 bg-slate-950/70 p-6 flex-1 flex flex-col gap-4 overflow-y-auto">
-            <div className="space-y-3 flex-shrink-0">
-              <div className="flex items-center gap-3">
-                <span className="text-lg">她喝了</span>
+      {/* ── Logic Board modal ── */}
+      <AnimatePresence>
+        {showLogic && (
+          <motion.div key="logic-panel" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="absolute inset-0 z-20 flex items-center justify-center"
+            style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(5px)' }}
+            onClick={() => setShowLogic(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 26, scale: 0.93 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 14, scale: 0.96 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+              onClick={e => e.stopPropagation()}
+              style={{
+                background: 'linear-gradient(155deg, #1e1710 0%, #120e07 100%)',
+                border: '1px solid rgba(200,160,55,0.38)', borderRadius: 14,
+                width: 'min(420px, 92vw)', padding: '24px 28px', boxShadow: '0 30px 100px rgba(0,0,0,0.8)',
+              }}
+            >
+              <div className="flex items-baseline justify-between mb-5">
+                <div className="flex items-baseline gap-2">
+                  <h2 style={{ color: '#dcc070', fontSize: '0.9rem', letterSpacing: '0.22em', fontFamily: 'serif' }}>Logic Board</h2>
+                  <span style={{ color: '#5a4820', fontSize: '0.55rem', letterSpacing: '0.18em', fontFamily: 'sans-serif' }}>推理板</span>
+                </div>
+                <button onClick={() => setShowLogic(false)}
+                  style={{ color: '#5a4820', fontSize: '1rem', background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+              </div>
+
+              <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', marginBottom: 20 }} />
+
+              <div className="flex items-center justify-center gap-3 mb-5">
+                <span style={{ color: '#d8cca8', fontSize: '1rem', letterSpacing: '0.14em', fontFamily: 'serif' }}>娟娟喝了</span>
                 <input
                   type="number"
                   value={answer}
-                  onChange={(e) => setAnswer(e.target.value)}
+                  onChange={e => setAnswer(e.target.value)}
                   disabled={!canSolve}
-                  placeholder=""
-                  className="w-20 rounded-xl border border-amber-500/30 bg-black/40 px-3 py-2 text-center text-2xl text-amber-100 outline-none"
+                  placeholder="?"
+                  style={{
+                    width: 72, padding: '8px',
+                    background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(200,168,72,0.3)',
+                    borderRadius: 8, color: '#e8c870', fontSize: '1.4rem',
+                    textAlign: 'center', outline: 'none', fontFamily: 'serif',
+                  }}
                 />
-                <span className="text-lg">杯</span>
+                <span style={{ color: '#d8cca8', fontSize: '1rem', letterSpacing: '0.14em', fontFamily: 'serif' }}>杯</span>
               </div>
-              <button
-                onClick={submitAnswer}
-                disabled={!canSolve}
-                className={`w-full rounded-2xl px-4 py-3 text-sm uppercase tracking-[0.2em] transition ${
-                  canSolve ? 'bg-amber-500 text-slate-950 hover:bg-amber-400' : 'bg-white/5 text-slate-500 cursor-not-allowed'
-                }`}
+
+              <motion.button className="w-full" onClick={submitAnswer} disabled={!canSolve}
+                style={{ cursor: canSolve ? 'pointer' : 'default' }}
+                whileHover={canSolve ? { scale: 1.02 } : {}}
+                whileTap={canSolve ? { scale: 0.97 } : {}}
               >
-                提交答案
-              </button>
-              {wrong && <p className="text-sm text-red-300">答案不對，再確認你收集到的線索。</p>}
-            </div>
+                <div style={{
+                  padding: '9px',
+                  background: canSolve ? 'rgba(200,150,45,0.16)' : 'rgba(18,18,24,0.6)',
+                  border: `1px solid ${canSolve ? 'rgba(200,150,45,0.65)' : 'rgba(40,40,52,0.45)'}`,
+                  borderRadius: 7, color: canSolve ? '#e0b040' : '#30303c',
+                  fontSize: '0.7rem', letterSpacing: '0.3em', fontFamily: 'sans-serif',
+                  textAlign: 'center', transition: 'all 0.35s',
+                }}>
+                  {canSolve ? '提交答案' : '需蒐集所有杯子'}
+                </div>
+              </motion.button>
 
-            <AnimatePresence>
-              {isSolved && (
-                <motion.div
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 16 }}
-                  className="rounded-3xl border border-emerald-500/40 bg-emerald-900/30 p-5 text-amber-100 flex-shrink-0"
-                >
-                  <p className="text-sm uppercase tracking-[0.35em] text-emerald-200">解謎完成</p>
-                  <p className="mt-2 text-base font-serif leading-relaxed">真相：柯老雄在三一三號房強迫娟娟飲下六杯紹興酒。</p> 
-
-                </motion.div>
+              {wrong && (
+                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center mt-3"
+                  style={{ color: '#a04040', fontSize: '0.58rem', letterSpacing: '0.14em', fontFamily: 'sans-serif' }}>
+                  答案不對，再確認你收集到的線索。
+                </motion.p>
               )}
-            </AnimatePresence>
-          </div>
 
-        </div>
-      </div>
+              <AnimatePresence>
+                {isSolved && (
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                    style={{ marginTop: 16, padding: '14px', background: 'rgba(16,80,40,0.25)', border: '1px solid rgba(60,180,100,0.3)', borderRadius: 8 }}>
+                    <p style={{ color: '#6ee7b7', fontSize: '0.52rem', letterSpacing: '0.3em', fontFamily: 'sans-serif', marginBottom: 6 }}>解謎完成</p>
+                    <p style={{ color: '#d8cca8', fontSize: '0.72rem', letterSpacing: '0.1em', fontFamily: 'serif', lineHeight: 1.8 }}>
+                      真相：柯老雄在三一三號房強迫娟娟飲下六杯紹興酒。
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence mode="wait">
         {endingVisible && (

@@ -20,6 +20,17 @@ export default function Chapter5() {
   const [ACount, setACount] = useState(0);
   const [BCount, setBCount] = useState(0);
   const [message, setMessage] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'ArrowRight') return
+      if (page === 'title') setPage('story')
+      else if (page === 'story') setPage('game')
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [page])
   useEffect(() => {
     const audio = tensionAudioRef.current;
     if (!audio) return;
@@ -107,16 +118,16 @@ export default function Chapter5() {
 
     setACount(a);
     setBCount(b);
+    setSubmitted(true);
 
     if (a === 4) {
       setMessage("真相已經重建完成。");
       setPage("correct");
-    
       setTimeout(() => {
         router.push("/ending");
       }, 3000);
     } else {
-      setMessage(`結果：${a}A${b}B`);
+      setMessage(`${a}A${b}B — 順序或選擇有誤，再試一次`);
     }
   }
 
@@ -125,6 +136,7 @@ export default function Chapter5() {
     setACount(0);
     setBCount(0);
     setMessage("");
+    setSubmitted(false);
   }
 
   return (
@@ -244,10 +256,10 @@ export default function Chapter5() {
                 transition={{ delay: 0.15, duration: 0.8 }}
                 style={{
                   color: "#d8c8a0",
-                  fontSize: "1.35rem",
-                  letterSpacing: "0.3em",
+                  fontSize: "1.2rem",
+                  letterSpacing: "0.14em",
                   fontFamily: "serif",
-                  lineHeight: 2,
+                  lineHeight: 1.8,
                   textAlign: "center",
                   textShadow: "0 0 40px rgba(216,200,160,0.2)",
                 }}
@@ -261,12 +273,12 @@ export default function Chapter5() {
                 transition={{ delay: 0.75, duration: 0.8 }}
                 style={{
                   color: "#6a5838",
-                  fontSize: "0.85rem",
-                  letterSpacing: "0.28em",
+                  fontSize: "0.82rem",
+                  letterSpacing: "0.14em",
                   fontFamily: "serif",
-                  lineHeight: 2.2,
+                  lineHeight: 2.0,
                   textAlign: "center",
-                  marginTop: 24,
+                  marginTop: 18,
                 }}
               >
                 你身為偵探面對這疑問，
@@ -280,12 +292,12 @@ export default function Chapter5() {
                 transition={{ delay: 1.25, duration: 0.8 }}
                 style={{
                   color: "#6a5838",
-                  fontSize: "0.85rem",
-                  letterSpacing: "0.28em",
+                  fontSize: "0.82rem",
+                  letterSpacing: "0.14em",
                   fontFamily: "serif",
-                  lineHeight: 2.2,
+                  lineHeight: 2.0,
                   textAlign: "center",
-                  marginTop: 14,
+                  marginTop: 10,
                 }}
               >
                 你將從這些碎片之中篩選出 4 個合理的片段，
@@ -317,126 +329,113 @@ export default function Chapter5() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.55 }}
-            className="absolute inset-0"
+            className="absolute inset-0 flex flex-col"
           >
-            <div className="relative min-h-screen w-screen overflow-hidden text-[#e8c870] font-[serif] tracking-widest flex flex-col items-center">
-              {/* 背景圖片 */}
-              <div
-                className="absolute inset-0"
-                style={{
-                  backgroundImage: "url('/CH5/room.png')",
-                  backgroundSize: "cover",
-                  backgroundPosition: "center 45%",
-                  filter: "brightness(0.2) blur(1px)",
-                  transform: "scale(1.03)",
-                }}
-              />
+            {/* chapter label */}
+            <div className="absolute top-4 left-5 flex flex-col gap-0.5 pointer-events-none z-10"
+              style={{ textShadow: '0 2px 10px rgba(0,0,0,0.95)' }}>
+              <p style={{ color: '#806030', fontSize: '0.55rem', letterSpacing: '0.38em', fontFamily: 'sans-serif' }}>CHAPTER  V</p>
+              <p style={{ color: '#e8c870', fontSize: '1rem', letterSpacing: '0.2em', fontFamily: 'serif' }}>娟娟房間</p>
+            </div>
+            <div className="absolute top-4 right-5 pointer-events-none z-10 flex flex-col gap-1"
+              style={{ textShadow: '0 2px 10px rgba(0,0,0,0.95)', textAlign: 'right' }}>
+              <p style={{ color: '#806030', fontSize: '0.72rem', letterSpacing: '0.12em', fontFamily: 'serif', textAlign: 'right' }}>A = 位置正確</p>
+              <p style={{ color: '#806030', fontSize: '0.72rem', letterSpacing: '0.12em', fontFamily: 'serif', textAlign: 'right' }}>B = 選對但位置錯</p>
+            </div>
 
-              <div className="absolute top-4 left-5 flex flex-col gap-0.5 pointer-events-none z-10"
-                style={{ textShadow: '0 2px 10px rgba(0,0,0,0.95)' }}>
-                <p style={{ color: '#806030', fontSize: '0.55rem', letterSpacing: '0.38em', fontFamily: 'sans-serif' }}>
-                  CHAPTER  V
-                </p>
-                <p style={{ color: '#e8c870', fontSize: '1rem', letterSpacing: '0.2em', fontFamily: 'serif' }}>
-                  娟娟房間
-                </p>
-              </div>
+            {/* 說明 + 目前選擇 */}
+            <div className="relative z-10 pt-14 pb-2 pl-5 pr-5 flex items-center justify-between flex-none"
+              style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+              <p style={{ fontSize: '0.72rem', letterSpacing: '0.2em', color: '#c8a040', fontFamily: 'serif' }}>
+                從 8 個碎片中選出正確的 4 個，依順序排成真相
+              </p>
+              <p style={{ fontSize: '0.6rem', letterSpacing: '0.14em', color: '#6a5030', fontFamily: 'serif' }}>
+                {answer.length === 0
+                  ? "尚未選擇"
+                  : answer.map((i) => choices[i].title.split(".")[0]).join(" → ")}
+              </p>
+            </div>
 
-              <div className="absolute top-4 right-5 border-1 border-'#e8c870' flex flex-col gap-0.5 pointer-events-none p-2 z-10 opacity-70"
-                style={{ textShadow: '0 2px 10px rgba(0,0,0,0.95)' }}>
-                <p style={{ color: '#e8c870', fontSize: '0.75rem', letterSpacing: '0.2em', fontFamily: 'sans-serif' }}>
-                  幾 A 幾 B 判定規則：
-                </p>
-                <p style={{ color: '#e8c870', fontSize: '0.75rem', letterSpacing: '0.2em', fontFamily: 'sans-serif' }}>
-                  有幾個 A 即代表選項正確且順序正確的數量
-                </p>
-                <p style={{ color: '#e8c870', fontSize: '0.75rem', letterSpacing: '0.2em', fontFamily: 'sans-serif' }}>
-                  有幾個 B 即代表選項正確但順序不正確的數量
-                </p>
-              </div>
-
-              {/* 黑色遮罩，讓文字和卡片更清楚 */}
-              <div className="absolute inset-0 bg-black/25 backdrop-blur-sm backdrop-saturate-150" />
-
-              {/* 遊戲內容 */}
-
-              <div className="relative z-10 mt-8 mb-6 text-center">
-                <p>請從以下 8 個碎片中找出正確的 4 個片段，並依照順序排列成真相。</p>
-                <p className="mt-2 text-sm opacity-70">
-                  目前選擇：
-                  {answer.length === 0
-                    ? "尚未選擇"
-                    : answer.map((index) => choices[index].title.split(".")[0]).join(" → ")}
-                </p>
-                <p className="mt-2 text-sm text-black opacity-70 bg-[#e8c870]">
-                  點擊碎片可選擇/取消選擇
-                </p>
-                <p className="mt-2 text-sm text-black opacity-70 bg-[#e8c870]">
-                  點擊「判斷」按鍵後將按照「幾 A 幾 B」的規則給予提示
-                </p>
-
-              </div>
-
-              <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 p-8">
-                {choices.map((choice, index) => {
-                  const selectedIndex = answer.indexOf(index);
-                  const isSelected = selectedIndex !== -1;
-
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => handleSelect(index)}
-                      className={`rounded-2xl w-[288px] h-[192px] relative overflow-hidden border-2 transition
-                ${isSelected
-                          ? "border-[#e8c870] scale-105"
-                          : "border-transparent opacity-80 hover:opacity-100"
-                        }
-              `}
-                    >
-                      <img
-                        src={choice.img}
-                        alt={choice.title}
-                        className="w-full h-full object-cover"
-                      />
-
-                      <div className="text-[#e8c870] bg-black/70 absolute bottom-0 w-full h-[28%] flex justify-center items-center text-sm px-2 text-center">
-                        {choice.title}
-                      </div>
-
+            {/* 卡片 grid — 置中且不填滿整個畫面 */}
+            <div className="relative z-10 flex-1 min-h-0 flex items-center justify-center px-6 py-3">
+              <div className="grid grid-cols-4 grid-rows-2 gap-3 w-full" style={{ height: 'min(52vh, 100%)' }}>
+              {choices.map((choice, index) => {
+                const selectedIndex = answer.indexOf(index);
+                const isSelected = selectedIndex !== -1;
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleSelect(index)}
+                    className="relative flex flex-col overflow-hidden rounded-xl border-2 transition w-full h-full"
+                    style={{
+                      borderColor: isSelected ? '#e8c870' : 'transparent',
+                      opacity: isSelected ? 1 : 0.7,
+                      boxShadow: isSelected ? '0 0 18px rgba(232,200,112,0.4)' : 'none',
+                    }}
+                  >
+                    <div className="relative flex-1 min-h-0">
+                      <img src={choice.img} alt={choice.title} className="absolute inset-0 w-full h-full object-cover" />
                       {isSelected && (
-                        <div className="absolute top-2 right-2 bg-[#e8c870] text-black rounded-full w-8 h-8 flex items-center justify-center font-bold">
+                        <div className="absolute top-2 right-2 bg-[#e8c870] text-black rounded-full w-7 h-7 flex items-center justify-center font-bold text-sm">
                           {selectedIndex + 1}
                         </div>
                       )}
-                    </button>
-                  );
-                })}
+                    </div>
+                    <div className="flex-none bg-black/85 flex justify-center items-center px-2 py-3">
+                      <span style={{ color: '#e8c870', fontSize: '0.82rem', letterSpacing: '0.1em', fontFamily: 'serif', textAlign: 'center' }}>
+                        {choice.title}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
               </div>
+            </div>
 
-              <div className="relative z-10 flex gap-4 mt-4">
-                <button
-                  onClick={checkAnswer}
-                  className="px-6 py-3 rounded-xl bg-[#e8c870] text-black hover:opacity-80 transition"
-                >
-                  判斷幾 A 幾 B
-                </button>
-
-                <button
-                  onClick={resetAnswer}
-                  className="px-6 py-3 rounded-xl border border-[#e8c870] text-[#e8c870] hover:bg-[#e8c870] hover:text-black transition"
-                >
-                  重新選擇
-                </button>
-              </div>
-
-              <div className="relative z-10 mt-4 text-xl">
-                {ACount}A {BCount}B
-              </div>
-
+            {/* 底部控制列 */}
+            <div className="relative z-10 flex-none flex items-center justify-center gap-6 py-3"
+              style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+              <button
+                onClick={checkAnswer}
+                style={{
+                  padding: '7px 24px',
+                  background: 'rgba(200,160,55,0.15)',
+                  border: '1px solid rgba(200,160,55,0.6)',
+                  borderRadius: 8,
+                  color: '#e8c870',
+                  fontSize: '0.7rem',
+                  letterSpacing: '0.28em',
+                  fontFamily: 'serif',
+                  cursor: 'pointer',
+                }}
+              >
+                判斷
+              </button>
+              <button
+                onClick={resetAnswer}
+                style={{
+                  padding: '7px 24px',
+                  background: 'transparent',
+                  border: '1px solid rgba(255,255,255,0.15)',
+                  borderRadius: 8,
+                  color: '#6a5030',
+                  fontSize: '0.7rem',
+                  letterSpacing: '0.28em',
+                  fontFamily: 'serif',
+                  cursor: 'pointer',
+                }}
+              >
+                重新選擇
+              </button>
+              {submitted && (
+                <p style={{ fontSize: '1.1rem', letterSpacing: '0.25em', color: '#e8c870', fontFamily: 'serif' }}>
+                  {ACount}A {BCount}B
+                </p>
+              )}
               {message && (
-                <div className="relative z-10 mt-4 text-lg">
+                <p style={{ fontSize: '0.65rem', letterSpacing: '0.18em', color: '#a08838', fontFamily: 'serif' }}>
                   {message}
-                </div>
+                </p>
               )}
             </div>
           </motion.section>
@@ -455,7 +454,7 @@ export default function Chapter5() {
     <div
       className="absolute inset-0"
       style={{
-        backgroundImage: "url('/images/room.png')",
+        backgroundImage: "url('/CH5/room.png')",
         backgroundSize: "cover",
         backgroundPosition: "center 45%",
         filter: "brightness(0.16) blur(1px)",

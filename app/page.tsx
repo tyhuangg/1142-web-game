@@ -73,7 +73,7 @@ export default function LandingPage() {
             transition={{ delay: 0.9, duration: 1.4, ease: 'easeOut' }}
             style={{
               color: '#e8c870',
-              fontSize: '4.8rem',
+              fontSize: 'clamp(2.8rem, 5vw, 4.8rem)',
               letterSpacing: '0.55em',
               fontFamily: 'serif',
               lineHeight: 1,
@@ -178,7 +178,7 @@ export default function LandingPage() {
           href="/credits"
           style={{
             color: '#2e2010',
-            fontSize: '0.5rem',
+            fontSize: '0.62rem',
             letterSpacing: '0.28em',
             fontFamily: 'sans-serif',
             textDecoration: 'none',

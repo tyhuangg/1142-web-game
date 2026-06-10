@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { CSSProperties } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
@@ -17,21 +17,17 @@ type ModalContent = {
 
 // ── Puzzle helpers ─────────────────────────────────────────────────────────
 
-// 12 puzzle pieces in correct order (4 cols × 3 rows)
-const PUZZLE_IMAGES = [
-  '/image_CH3/puzzle/1-1.png',
-  '/image_CH3/puzzle/1-2.png',
-  '/image_CH3/puzzle/1-3.png',
-  '/image_CH3/puzzle/1-4.png',
-  '/image_CH3/puzzle/2-1.png',
-  '/image_CH3/puzzle/2-2.png',
-  '/image_CH3/puzzle/2-3.png',
-  '/image_CH3/puzzle/2-4.png',
-  '/image_CH3/puzzle/3-1.png',
-  '/image_CH3/puzzle/3-2.png',
-  '/image_CH3/puzzle/3-3.png',
-  '/image_CH3/puzzle/3-4.png',
-]
+const PUZZLE_IMAGE = '/image_CH3/ending-2.png'
+const PUZZLE_COLS = 4
+const PUZZLE_ROWS = 3
+
+function getTileBgPosition(tile: number) {
+  const col = (tile - 1) % PUZZLE_COLS
+  const row = Math.floor((tile - 1) / PUZZLE_COLS)
+  const x = (col / (PUZZLE_COLS - 1)) * 100
+  const y = (row / (PUZZLE_ROWS - 1)) * 100
+  return `${x}% ${y}%`
+}
 
 function isTilesSolved(tiles: number[]) {
   return tiles.every((t, i) => t === i + 1)
@@ -51,12 +47,13 @@ function makeShuffled(): number[] {
 // ── Dialogue beats ─────────────────────────────────────────────────────────
 
 const DIALOGUE_BEATS = [
-  { lines: ['這張照片背面似乎寫著字……'] },
-  { lines: ['五寶', '89年生'] },
-  { lines: ['她曾經住在這裡。'] },
-  { lines: ['鄰居多次聽見哭聲。'] },
-  { lines: ['但沒有人阻止。'] },
-  { lines: ['最後……', '五寶死於長期虐待。'] },
+  { lines: ['一張雲芳與娟娟的合照。'] },
+  { lines: ['這裡，曾是她們的家。'] },
+  { lines: ['雲芳賣掉了手腕上的翡翠鐲子，', '才拼湊著買下這棟公寓。'] },
+  { lines: ['她說，完全是為了娟娟。'] },
+  { lines: ['每天弄好消夜，等娟娟回來。', '有時一等便等到天亮。'] },
+  { lines: ['直到柯老雄出現的那天——'] },
+  { lines: ['「沒法子喲，總司令——」'] },
 ]
 
 // ── PulseNode (identical to CH1) ───────────────────────────────────────────
@@ -90,6 +87,8 @@ export default function Chapter3() {
   const [dresserCollected, setDresserCollected] = useState(false)
   const [modal, setModal] = useState<ModalContent | null>(null)
   const [hoveredId, setHoveredId] = useState<string | null>(null)
+  const [showEvidence, setShowEvidence] = useState(false)
+  const [showNotes, setShowNotes] = useState(false)
   const [notReadyHint, setNotReadyHint] = useState(false)
 
   // Phase
@@ -108,6 +107,27 @@ export default function Chapter3() {
   // Intro title card
   const [introVisible, setIntroVisible] = useState(true)
 
+  // Background music
+  const bgmRef = useRef<HTMLAudioElement | null>(null)
+
+  useEffect(() => {
+    const audio = new Audio('/audio/ch3_bgm.mp3')
+    audio.loop = true
+    audio.volume = 0.5
+    bgmRef.current = audio
+
+    const playOnInteraction = () => {
+      audio.play().catch(() => {})
+      window.removeEventListener('pointerdown', playOnInteraction)
+    }
+    window.addEventListener('pointerdown', playOnInteraction)
+
+    return () => {
+      window.removeEventListener('pointerdown', playOnInteraction)
+      audio.pause()
+    }
+  }, [])
+
   useEffect(() => {
     const t = setTimeout(() => setIntroVisible(false), 3000)
     return () => clearTimeout(t)
@@ -122,19 +142,19 @@ export default function Chapter3() {
   function handleWardrobeClick() {
     if (wardrobeClicks === 0) {
       setWardrobeClicks(1)
-      setModal({ title: '衣櫃', lines: ['衣櫃裡掛著幾件小女孩的衣服。'] })
+      setModal({ title: '衣櫃', lines: ['衣櫃裡掛著娟娟的幾件旗袍。', '她最愛那件黑緞子的。'] })
     } else if (wardrobeClicks === 1) {
       setWardrobeClicks(2)
       setModal({
         title: '衣櫃',
-        lines: ['衣服尺寸很小。', '像是國小女孩穿的。'],
-        clue: '這裡曾經住過孩子。',
+        lines: ['袖口的布料捲了起來。', '上頭有幾個細小的針孔印子。'],
+        clue: '娟娟已染上嗎啡癮。',
       })
     } else {
       setModal({
         title: '衣櫃',
-        lines: ['衣服尺寸很小。', '像是國小女孩穿的。'],
-        clue: '這裡曾經住過孩子。',
+        lines: ['袖口的布料捲了起來。', '上頭有幾個細小的針孔印子。'],
+        clue: '娟娟已染上嗎啡癮。',
       })
     }
   }
@@ -143,8 +163,8 @@ export default function Chapter3() {
     setDresserCollected(true)
     setModal({
       title: '梳妝台',
-      lines: ['梳妝台上放著一張泛黃的紙條。', '', '雲芳：', '不要再讓五寶哭了。', '——娟娟'],
-      clue: '發現關鍵名字：雲芳、娟娟',
+      lines: ['梳妝台上散落著口紅與胭脂。', '', '角落壓著一張字條：', '「沒法子喲，總司令。」', '——娟娟'],
+      clue: '發現娟娟留下的字條',
     })
   }
 
@@ -183,10 +203,13 @@ export default function Chapter3() {
     if (isTilesSolved(next)) {
       setPuzzleSolved(true)
       setTimeout(() => {
-        setPhase('dialogue')
-        setBeat(0)
-        setBeatVisible(true)
-      }, 1200)
+        setPhase('explore')
+        setTimeout(() => {
+          setPhase('dialogue')
+          setBeat(0)
+          setBeatVisible(true)
+        }, 3000)
+      }, 1500)
     }
   }
 
@@ -228,6 +251,7 @@ export default function Chapter3() {
     collected: boolean
     style: CSSProperties
     onClick: () => void
+    hint?: string
   }[] = [
     {
       id: 'wardrobe',
@@ -235,6 +259,7 @@ export default function Chapter3() {
       collected: wardrobeExplored,
       style: { left: '12%', top: '12%', width: 88, height: 140 },
       onClick: handleWardrobeClick,
+      hint: wardrobeClicks === 1 ? '仔細再看看' : undefined,
     },
     {
       id: 'dresser',
@@ -245,7 +270,7 @@ export default function Chapter3() {
     },
     {
       id: 'photo',
-      label: '照片',
+      label: '合照',
       collected: false,
       style: { left: '38%', top: '52%', width: 64, height: 52 },
       onClick: handlePhotoClick,
@@ -258,9 +283,9 @@ export default function Chapter3() {
     <div className="relative h-full w-full flex flex-col overflow-hidden" style={{ background: '#16161c' }}>
 
       {/* ══════════════════════════════════════════
-          TOP: Scene (56% height)
+          Scene (fills all space above toolbar)
       ══════════════════════════════════════════ */}
-      <div className="relative flex-none" style={{ height: '56%' }}>
+      <div className="relative flex-1 min-h-0">
 
         {/* Background */}
         <div
@@ -308,7 +333,7 @@ export default function Chapter3() {
         </div>
 
         {/* Hotspots */}
-        {HOTSPOTS.map(({ id, label, collected, style, onClick }) => {
+        {HOTSPOTS.map(({ id, label, collected, style, onClick, hint }) => {
           const hovered = hoveredId === id
           return (
             <motion.button
@@ -367,6 +392,28 @@ export default function Chapter3() {
                   </motion.div>
                 )}
               </AnimatePresence>
+
+              {/* Re-inspect hint */}
+              <AnimatePresence>
+                {hint && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: [0.6, 1, 0.6], y: 0 }}
+                    exit={{ opacity: 0, transition: { duration: 0.3, repeat: 0 } }}
+                    transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+                    className="absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-none"
+                    style={{
+                      color: '#c8a040',
+                      fontSize: '0.52rem',
+                      letterSpacing: '0.2em',
+                      fontFamily: 'sans-serif',
+                      textShadow: '0 2px 8px rgba(0,0,0,0.95)',
+                    }}
+                  >
+                    {hint}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.button>
           )
         })}
@@ -421,133 +468,199 @@ export default function Chapter3() {
       </div>
 
       {/* ══════════════════════════════════════════
-          BOTTOM: Evidence + Notes (44% height)
+          Bottom toolbar
       ══════════════════════════════════════════ */}
-      <div
-        className="flex-1 flex overflow-hidden"
-        style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
-      >
+      <div className="flex-none flex items-center gap-4 px-6"
+           style={{ height: 'clamp(100px, 14vh, 150px)', background: 'rgba(8,7,14,0.97)', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
 
-        {/* ── Evidence Panel (left half) ── */}
-        <div
-          className="flex flex-col overflow-hidden"
-          style={{ width: '50%', padding: '14px 16px', borderRight: '1px solid rgba(255,255,255,0.06)' }}
+        {/* Evidence button */}
+        <motion.button
+          onClick={() => setShowEvidence(true)}
+          className="flex-1 flex flex-col justify-center gap-3"
+          whileHover={{ scale: 1.02, backgroundColor: 'rgba(200,160,55,0.07)' }}
+          whileTap={{ scale: 0.97 }}
+          style={{
+            height: 'clamp(74px, 10vh, 110px)', background: 'rgba(200,160,55,0.04)',
+            border: '1px solid rgba(200,160,55,0.18)', borderRadius: 10,
+            padding: '0 22px', cursor: 'pointer',
+          }}
         >
-          <div className="flex items-baseline gap-2 mb-3 flex-none">
-            <h2 style={{ color: '#dcc070', fontSize: '0.9rem', letterSpacing: '0.22em', fontFamily: 'serif' }}>
-              Evidence
-            </h2>
-            <span style={{ color: '#5a4820', fontSize: '0.55rem', letterSpacing: '0.18em', fontFamily: 'sans-serif' }}>
-              證據欄
-            </span>
+          <div className="flex items-baseline gap-2">
+            <span style={{ color: '#dcc070', fontSize: '1rem', letterSpacing: '0.22em', fontFamily: 'serif' }}>Evidence</span>
+            <span style={{ color: '#5a4820', fontSize: '0.62rem', letterSpacing: '0.18em', fontFamily: 'sans-serif' }}>證據欄</span>
           </div>
-
-          <div className="flex flex-col gap-2.5 flex-1 min-h-0">
-            {[
-              { id: 'wardrobe', name: '衣櫃', collected: wardrobeExplored, image: '/image_CH3/wardrobe.png', onClick: handleWardrobeClick },
-              { id: 'note', name: '梳妝台紙條', collected: dresserCollected, image: '/image_CH3/note.png', onClick: handleDresserClick },
-            ].map(ev => (
-              <motion.button
-                key={ev.id}
-                onClick={() => ev.collected && ev.onClick()}
-                disabled={!ev.collected}
-                className="relative flex items-center gap-3 rounded-lg overflow-hidden flex-1 min-h-0"
-                style={{
-                  background: ev.collected ? 'rgba(26,20,10,0.95)' : 'rgba(18,18,24,0.8)',
-                  border: `1px solid ${ev.collected ? 'rgba(210,165,55,0.6)' : 'rgba(50,50,62,0.5)'}`,
-                  boxShadow: ev.collected
-                    ? '0 0 16px rgba(210,165,55,0.14), inset 0 1px 0 rgba(210,165,55,0.08)'
-                    : 'none',
-                  cursor: ev.collected ? 'pointer' : 'default',
-                  padding: ev.collected ? '10px 14px' : 0,
-                }}
-                whileHover={ev.collected ? { scale: 1.02, y: -1 } : {}}
-                whileTap={ev.collected ? { scale: 0.97 } : {}}
-              >
-                {ev.collected ? (
-                  <>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={ev.image}
-                      alt={ev.name}
-                      style={{ width: 60, height: 60, objectFit: 'contain', flexShrink: 0 }}
-                    />
-                    <p style={{ color: '#a08838', fontSize: '0.6rem', letterSpacing: '0.14em', fontFamily: 'sans-serif' }}>
-                      {ev.name}
-                    </p>
-                  </>
-                ) : (
-                  <div
-                    className="absolute inset-0 flex flex-col items-center justify-center gap-1"
-                    style={{ opacity: 0.18 }}
-                  >
-                    <span style={{ fontSize: '1.6rem' }}>?</span>
-                    <span style={{ color: '#606075', fontSize: '0.5rem', letterSpacing: '0.1em', fontFamily: 'sans-serif' }}>
-                      未發現
-                    </span>
-                  </div>
-                )}
-              </motion.button>
+          <div className="flex gap-2">
+            {[wardrobeExplored, dresserCollected].map((collected, i) => (
+              <div key={i} style={{
+                width: 9, height: 9, borderRadius: '50%',
+                background: collected ? '#c8a030' : 'rgba(90,72,30,0.3)',
+                boxShadow: collected ? '0 0 6px rgba(200,160,48,0.6)' : 'none',
+                transition: 'all 0.3s',
+              }} />
             ))}
           </div>
-        </div>
+        </motion.button>
 
-        {/* ── Notes Panel (right half) ── */}
-        <div className="flex flex-col overflow-hidden" style={{ width: '50%', padding: '14px 18px' }}>
-          <div className="flex items-baseline gap-2 mb-3 flex-none">
-            <h2 style={{ color: '#dcc070', fontSize: '0.9rem', letterSpacing: '0.22em', fontFamily: 'serif' }}>
-              Notes
-            </h2>
-            <span style={{ color: '#5a4820', fontSize: '0.55rem', letterSpacing: '0.18em', fontFamily: 'sans-serif' }}>
-              調查筆記
-            </span>
+        {/* Notes button */}
+        <motion.button
+          onClick={() => setShowNotes(true)}
+          className="flex-1 flex flex-col justify-center gap-3"
+          whileHover={{ scale: 1.02, backgroundColor: 'rgba(200,160,55,0.07)' }}
+          whileTap={{ scale: 0.97 }}
+          style={{
+            height: 'clamp(74px, 10vh, 110px)',
+            background: dresserCollected ? 'rgba(200,150,45,0.07)' : 'rgba(200,160,55,0.04)',
+            border: `1px solid ${dresserCollected ? 'rgba(200,150,45,0.35)' : 'rgba(200,160,55,0.18)'}`,
+            borderRadius: 10, padding: '0 22px', cursor: 'pointer',
+            transition: 'border-color 0.4s, background 0.4s',
+          }}
+        >
+          <div className="flex items-baseline gap-2">
+            <span style={{ color: dresserCollected ? '#dcc070' : '#4a4858', fontSize: '1rem', letterSpacing: '0.22em', fontFamily: 'serif', transition: 'color 0.4s' }}>Notes</span>
+            <span style={{ color: '#5a4820', fontSize: '0.62rem', letterSpacing: '0.18em', fontFamily: 'sans-serif' }}>調查筆記</span>
           </div>
-
-          <div className="flex flex-col gap-2 flex-1 min-h-0">
-            {[
-              { label: '雲芳', sub: '紙條收件人', unlocked: dresserCollected },
-              { label: '娟娟', sub: '紙條寄件人', unlocked: dresserCollected },
-              { label: '五寶', sub: '照片中的孩子', unlocked: puzzleSolved },
-            ].map(item => (
-              <div
-                key={item.label}
-                className="flex-1 min-h-0 flex flex-col justify-center"
-                style={{
-                  padding: '8px 12px',
-                  background: item.unlocked ? 'rgba(200,160,55,0.055)' : 'rgba(18,18,24,0.6)',
-                  border: `1px solid ${item.unlocked ? 'rgba(200,160,55,0.2)' : 'rgba(40,40,52,0.45)'}`,
-                  borderRadius: 7,
-                  transition: 'all 0.4s',
-                }}
-              >
-                <p
-                  style={{
-                    color: item.unlocked ? '#c8a040' : '#303040',
-                    fontSize: '1rem',
-                    letterSpacing: '0.2em',
-                    fontFamily: 'serif',
-                    transition: 'color 0.4s',
-                  }}
-                >
-                  {item.unlocked ? item.label : '？？'}
-                </p>
-                <p
-                  style={{
-                    color: item.unlocked ? '#5a4820' : '#252530',
-                    fontSize: '0.5rem',
-                    letterSpacing: '0.18em',
-                    fontFamily: 'sans-serif',
-                    marginTop: 2,
-                    transition: 'color 0.4s',
-                  }}
-                >
-                  {item.sub}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
+          <span style={{ color: dresserCollected ? '#c8a030' : '#3a3848', fontSize: '0.6rem', letterSpacing: '0.18em', fontFamily: 'sans-serif', transition: 'color 0.4s' }}>
+            {dresserCollected ? `已解鎖 ${collectedCount} / 3 人物` : '調查場景以解鎖筆記'}
+          </span>
+        </motion.button>
       </div>
+
+      {/* ══════════════════════════════════════════
+          Evidence panel modal
+      ══════════════════════════════════════════ */}
+      <AnimatePresence>
+        {showEvidence && (
+          <motion.div key="evidence-panel" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="absolute inset-0 z-20 flex items-center justify-center"
+            style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(5px)' }}
+            onClick={() => setShowEvidence(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 26, scale: 0.93 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 14, scale: 0.96 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+              onClick={e => e.stopPropagation()}
+              style={{
+                background: 'linear-gradient(155deg, #1e1710 0%, #120e07 100%)',
+                border: '1px solid rgba(200,160,55,0.38)', borderRadius: 14,
+                width: 'min(420px, 92vw)', padding: '24px 28px', boxShadow: '0 30px 100px rgba(0,0,0,0.8)',
+              }}
+            >
+              <div className="flex items-baseline justify-between mb-5">
+                <div className="flex items-baseline gap-2">
+                  <h2 style={{ color: '#dcc070', fontSize: '0.9rem', letterSpacing: '0.22em', fontFamily: 'serif' }}>Evidence</h2>
+                  <span style={{ color: '#5a4820', fontSize: '0.55rem', letterSpacing: '0.18em', fontFamily: 'sans-serif' }}>證據欄</span>
+                </div>
+                <button onClick={() => setShowEvidence(false)}
+                  style={{ color: '#5a4820', fontSize: '1rem', background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+              </div>
+              <div className="flex flex-col gap-3">
+                {[
+                  { id: 'wardrobe', name: '衣櫃', collected: wardrobeExplored, image: '/image_CH3/wardrobe.png', onClick: handleWardrobeClick },
+                  { id: 'note', name: '梳妝台紙條', collected: dresserCollected, image: '/image_CH3/note.png', onClick: handleDresserClick },
+                ].map(ev => (
+                  <motion.button key={ev.id}
+                    onClick={() => { if (ev.collected) { setShowEvidence(false); ev.onClick() } }}
+                    disabled={!ev.collected}
+                    className="relative flex items-center gap-3 rounded-lg overflow-hidden"
+                    style={{
+                      height: 80,
+                      background: ev.collected ? 'rgba(26,20,10,0.95)' : 'rgba(18,18,24,0.8)',
+                      border: `1px solid ${ev.collected ? 'rgba(210,165,55,0.6)' : 'rgba(50,50,62,0.5)'}`,
+                      boxShadow: ev.collected ? '0 0 16px rgba(210,165,55,0.14)' : 'none',
+                      cursor: ev.collected ? 'pointer' : 'default',
+                      padding: ev.collected ? '10px 14px' : 0,
+                    }}
+                    whileHover={ev.collected ? { scale: 1.02, y: -1 } : {}}
+                    whileTap={ev.collected ? { scale: 0.97 } : {}}
+                  >
+                    {ev.collected ? (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={ev.image} alt={ev.name} style={{ width: 56, height: 56, objectFit: 'contain', flexShrink: 0 }} />
+                        <p style={{ color: '#a08838', fontSize: '0.6rem', letterSpacing: '0.14em', fontFamily: 'sans-serif' }}>{ev.name}</p>
+                      </>
+                    ) : (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-1" style={{ opacity: 0.18 }}>
+                        <span style={{ fontSize: '1.6rem' }}>?</span>
+                        <span style={{ color: '#606075', fontSize: '0.5rem', letterSpacing: '0.1em', fontFamily: 'sans-serif' }}>未發現</span>
+                      </div>
+                    )}
+                  </motion.button>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ══════════════════════════════════════════
+          Notes modal
+      ══════════════════════════════════════════ */}
+      <AnimatePresence>
+        {showNotes && (
+          <motion.div key="notes-panel" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="absolute inset-0 z-20 flex items-center justify-center"
+            style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(5px)' }}
+            onClick={() => setShowNotes(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 26, scale: 0.93 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 14, scale: 0.96 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+              onClick={e => e.stopPropagation()}
+              style={{
+                background: 'linear-gradient(155deg, #1e1710 0%, #120e07 100%)',
+                border: '1px solid rgba(200,160,55,0.38)', borderRadius: 14,
+                width: 'min(420px, 92vw)', padding: '24px 28px', boxShadow: '0 30px 100px rgba(0,0,0,0.8)',
+              }}
+            >
+              <div className="flex items-baseline justify-between mb-5">
+                <div className="flex items-baseline gap-2">
+                  <h2 style={{ color: '#dcc070', fontSize: '0.9rem', letterSpacing: '0.22em', fontFamily: 'serif' }}>Notes</h2>
+                  <span style={{ color: '#5a4820', fontSize: '0.55rem', letterSpacing: '0.18em', fontFamily: 'sans-serif' }}>調查筆記</span>
+                </div>
+                <button onClick={() => setShowNotes(false)}
+                  style={{ color: '#5a4820', fontSize: '1rem', background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+              </div>
+              <div className="flex flex-col gap-2.5">
+                {[
+                  { label: '娟娟', sub: '同居者', desc: '雲芳的同伴，染上嗎啡癮，受柯老雄控制而無力自拔。', unlocked: dresserCollected },
+                  { label: '雲芳', sub: '敘述者', desc: '五月花女經理，典當翡翠鐲子買下此公寓，一切為了娟娟。', unlocked: dresserCollected },
+                  { label: '柯老雄', sub: '威脅者', desc: '跑單幫的黑窩主，纏上娟娟後將她的魂魄盡數攝走。', unlocked: puzzleSolved },
+                ].map(item => (
+                  <div key={item.label} style={{
+                    padding: '10px 14px',
+                    background: item.unlocked ? 'rgba(200,160,55,0.055)' : 'rgba(18,18,24,0.6)',
+                    border: `1px solid ${item.unlocked ? 'rgba(200,160,55,0.2)' : 'rgba(40,40,52,0.45)'}`,
+                    borderRadius: 7, transition: 'all 0.4s',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <p style={{ color: item.unlocked ? '#c8a040' : '#303040', fontSize: '1rem', letterSpacing: '0.2em', fontFamily: 'serif', transition: 'color 0.4s' }}>
+                        {item.unlocked ? item.label : '？？'}
+                      </p>
+                      <span style={{
+                        color: item.unlocked ? '#6a5228' : '#252530', fontSize: '0.5rem', letterSpacing: '0.14em', fontFamily: 'sans-serif',
+                        background: item.unlocked ? 'rgba(200,160,55,0.1)' : 'transparent',
+                        padding: '1px 6px', borderRadius: 3, transition: 'all 0.4s',
+                      }}>
+                        {item.sub}
+                      </span>
+                    </div>
+                    {item.unlocked && (
+                      <p style={{ color: '#7a6030', fontSize: '0.58rem', letterSpacing: '0.1em', fontFamily: 'sans-serif', marginTop: 5, lineHeight: 1.7 }}>
+                        {item.desc}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ══════════════════════════════════════════
           Evidence detail modal (overlay)
@@ -574,24 +687,20 @@ export default function Chapter3() {
                 background: 'linear-gradient(155deg, #1e1710 0%, #120e07 100%)',
                 border: '1px solid rgba(200,160,55,0.38)',
                 borderRadius: 14,
-                width: 340,
+                width: 'min(340px, 92vw)',
                 maxHeight: '70vh',
                 padding: '26px 30px',
                 boxShadow: '0 30px 100px rgba(0,0,0,0.8)',
                 overflowY: 'auto',
               }}
             >
-              <h3
-                style={{
-                  color: '#dcc070',
-                  fontSize: '0.85rem',
-                  letterSpacing: '0.2em',
-                  fontFamily: 'serif',
-                  marginBottom: 18,
-                }}
-              >
-                {modal.title}
-              </h3>
+              <div className="flex items-center justify-between" style={{ marginBottom: 18 }}>
+                <h3 style={{ color: '#dcc070', fontSize: '0.85rem', letterSpacing: '0.2em', fontFamily: 'serif' }}>
+                  {modal.title}
+                </h3>
+                <button onClick={() => setModal(null)}
+                  style={{ color: '#5a4820', fontSize: '1rem', background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+              </div>
 
               <div style={{ marginBottom: 16 }}>
                 {modal.lines.map((line, i) => (
@@ -671,6 +780,16 @@ export default function Chapter3() {
             className="absolute inset-0 z-30 flex flex-col items-center justify-center"
             style={{ background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(10px)' }}
           >
+            {/* Close button */}
+            {!puzzleSolved && (
+              <button
+                onClick={() => setPhase('explore')}
+                className="absolute top-5 right-5 flex items-center justify-center rounded-full transition hover:bg-white/10"
+                style={{ width: 36, height: 36, border: '1px solid rgba(200,160,55,0.3)', color: '#a08838', fontSize: '1.1rem' }}
+              >
+                ✕
+              </button>
+            )}
             <p
               style={{
                 color: '#806030',
@@ -691,7 +810,7 @@ export default function Chapter3() {
                 marginBottom: 6,
               }}
             >
-              拼湊照片
+              拼湊合照
             </p>
             <p
               style={{
@@ -702,7 +821,7 @@ export default function Chapter3() {
                 marginBottom: 20,
               }}
             >
-              {puzzleSolved ? '照片還原完成' : '拖曳拼圖片段，還原完整照片'}
+              {puzzleSolved ? '合照還原完成' : '拖曳拼圖片段，還原這張合照'}
             </p>
 
             {/* 4×3 drag-and-drop tile grid */}
@@ -748,15 +867,13 @@ export default function Chapter3() {
                       position: 'relative',
                     }}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={PUZZLE_IMAGES[tile - 1]}
-                      alt={`piece ${tile}`}
+                    <div
                       style={{
                         width: '100%',
                         height: '100%',
-                        objectFit: 'cover',
-                        display: 'block',
+                        backgroundImage: `url('${PUZZLE_IMAGE}')`,
+                        backgroundSize: `${PUZZLE_COLS * 100}% ${PUZZLE_ROWS * 100}%`,
+                        backgroundPosition: getTileBgPosition(tile),
                         pointerEvents: 'none',
                         filter: puzzleSolved ? 'brightness(1.05)' : 'brightness(0.9)',
                         transition: 'filter 0.3s',
@@ -789,7 +906,7 @@ export default function Chapter3() {
                     textShadow: '0 0 14px rgba(80,208,96,0.5)',
                   }}
                 >
-                  ✓　照片還原完成
+                  ✓　合照還原完成
                 </motion.p>
               )}
             </AnimatePresence>
@@ -812,11 +929,11 @@ export default function Chapter3() {
             style={{ background: '#0a0808' }}
             onClick={advanceDialogue}
           >
-            {/* ── Beat 0: ending-1 ── */}
+            {/* ── Beats 0+: ending-2 ── */}
             <AnimatePresence>
               {beat < DIALOGUE_BEATS.length - 1 && (
                 <motion.div
-                  key="bg-ending1"
+                  key="bg-ending2-main"
                   className="absolute inset-0 flex items-center justify-center"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -825,7 +942,7 @@ export default function Chapter3() {
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src="/image_CH3/ending-1.png"
+                    src="/image_CH3/ending-2.png"
                     alt=""
                     style={{ maxWidth: '70%', maxHeight: '60%', objectFit: 'contain' }}
                   />

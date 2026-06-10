@@ -127,6 +127,8 @@ export default function Chapter4Page() {
   const [activeClueId, setActiveClueId] = useState<ClueId | null>(null)
   const [showReveal, setShowReveal] = useState(false)
   const [revealBeat, setRevealBeat] = useState<RevealBeat | null>(null)
+  const [showEvidence, setShowEvidence] = useState(false)
+  const [showLogic, setShowLogic] = useState(false)
   const line2HoldTimer = useRef<number | null>(null)
   const investigateTimer = useRef<number | null>(null)
   const line2RevealScheduled = useRef(false)
@@ -351,7 +353,7 @@ export default function Chapter4Page() {
             transition={{ duration: 0.55 }}
           >
             {/* ── 上方場景 ── */}
-            <div className="relative flex-none overflow-hidden" style={{ height: SCENE_HEIGHT }}>
+            <div className="relative flex-1 min-h-0 overflow-hidden">
               <Image
                 src="/images/chapter4-room-clues.png"
                 alt="房內搜查視角"
@@ -476,317 +478,249 @@ export default function Chapter4Page() {
               </div>
             </div>
 
-            {/* ── 下方任務版 ── */}
-            <div
-              className="flex flex-none overflow-hidden"
-              style={{
-                height: BOARD_HEIGHT,
-                borderTop: '1px solid rgba(255,255,255,0.07)',
-              }}
-            >
-              {/* 證據欄（3 格） */}
-              <div
-                className="flex min-h-0 flex-col overflow-hidden"
+            {/* ── 底部工具列 ── */}
+            <div className="flex flex-none items-center gap-4 px-6"
+                 style={{ height: 'clamp(100px, 14vh, 150px)', background: 'rgba(8,7,14,0.97)', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+
+              {/* Evidence button */}
+              <motion.button
+                type="button"
+                onClick={() => setShowEvidence(true)}
+                className="flex-1 flex flex-col justify-center gap-3"
+                whileHover={{ scale: 1.02, backgroundColor: 'rgba(200,160,55,0.07)' }}
+                whileTap={{ scale: 0.97 }}
                 style={{
-                  width: '50%',
-                  padding: '10px 14px',
-                  borderRight: '1px solid rgba(255,255,255,0.06)',
+                  height: 'clamp(74px, 10vh, 110px)', background: 'rgba(200,160,55,0.04)',
+                  border: '1px solid rgba(200,160,55,0.18)', borderRadius: 10,
+                  padding: '0 22px', cursor: 'pointer',
                 }}
               >
-                <div className="mb-2 flex flex-none items-baseline gap-2">
-                  <h2
-                    style={{
-                      color: '#dcc070',
-                      fontSize: '0.82rem',
-                      letterSpacing: '0.22em',
-                      fontFamily: 'serif',
-                    }}
-                  >
-                    Evidence
-                  </h2>
-                  <span
-                    style={{
-                      color: '#5a4820',
-                      fontSize: '0.52rem',
-                      letterSpacing: '0.18em',
-                      fontFamily: 'sans-serif',
-                    }}
-                  >
-                    證據欄 · 3 項
-                  </span>
+                <div className="flex items-baseline gap-2">
+                  <span style={{ color: '#dcc070', fontSize: '1rem', letterSpacing: '0.22em', fontFamily: 'serif' }}>Evidence</span>
+                  <span style={{ color: '#5a4820', fontSize: '0.62rem', letterSpacing: '0.18em', fontFamily: 'sans-serif' }}>證據欄</span>
                 </div>
-
-                <div className="grid min-h-0 flex-1 grid-cols-3 grid-rows-1 gap-2 overflow-hidden">
-                  {Array.from({ length: BRIEFCASE_CAPACITY }, (_, slotIndex) => {
-                    const id = briefcaseList[slotIndex]
-                    const spot = id ? getClue(id) : null
-                    return (
-                      <motion.button
-                        key={slotIndex}
-                        type="button"
-                        disabled={!spot}
-                        onClick={() => spot && openClue(spot.id)}
-                        className="relative flex min-h-0 flex-col items-center justify-between overflow-hidden rounded-lg"
-                        style={{
-                          background: spot
-                            ? 'rgba(26,20,10,0.95)'
-                            : 'rgba(18,18,24,0.8)',
-                          border: `1px solid ${spot ? 'rgba(210,165,55,0.6)' : 'rgba(50,50,62,0.5)'}`,
-                          boxShadow: spot
-                            ? '0 0 16px rgba(210,165,55,0.14), inset 0 1px 0 rgba(210,165,55,0.08)'
-                            : 'none',
-                          cursor: spot ? 'pointer' : 'default',
-                          padding: spot ? '8px 10px 6px' : 0,
-                        }}
-                        whileHover={spot ? { scale: 1.025, y: -1 } : {}}
-                        whileTap={spot ? { scale: 0.97 } : {}}
-                      >
-                        {spot ? (
-                          <>
-                            <div className="flex min-h-0 w-full flex-1 items-center justify-center overflow-hidden px-1.5 py-1">
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={spot.clueSrc}
-                                alt={spot.clueTitle}
-                                style={{
-                                  maxWidth: '90%',
-                                  maxHeight: '90%',
-                                  objectFit: 'contain',
-                                  display: 'block',
-                                }}
-                              />
-                            </div>
-                            <p
-                              style={{
-                                color: '#a08838',
-                                fontSize: '0.48rem',
-                                letterSpacing: '0.1em',
-                                fontFamily: 'sans-serif',
-                                flexShrink: 0,
-                                marginTop: 2,
-                              }}
-                            >
-                              {spot.clueTitle}
-                            </p>
-                          </>
-                        ) : (
-                          <div
-                            className="absolute inset-0 flex flex-col items-center justify-center gap-0.5"
-                            style={{ opacity: 0.18 }}
-                          >
-                            <span style={{ fontSize: '1.2rem' }}>?</span>
-                            <span
-                              style={{
-                                color: '#606075',
-                                fontSize: '0.45rem',
-                                letterSpacing: '0.1em',
-                                fontFamily: 'sans-serif',
-                              }}
-                            >
-                              未放入
-                            </span>
-                          </div>
-                        )}
-                      </motion.button>
-                    )
-                  })}
+                <div className="flex gap-2">
+                  {Array.from({ length: BRIEFCASE_CAPACITY }, (_, i) => (
+                    <div key={i} style={{
+                      width: 9, height: 9, borderRadius: '50%',
+                      background: briefcaseList[i] ? '#c8a030' : 'rgba(90,72,30,0.3)',
+                      boxShadow: briefcaseList[i] ? '0 0 6px rgba(200,160,48,0.6)' : 'none',
+                      transition: 'all 0.3s',
+                    }} />
+                  ))}
                 </div>
-              </div>
+              </motion.button>
 
-              {/* 推理板 */}
-              <div
-                className="flex min-h-0 flex-col overflow-hidden"
-                style={{ width: '50%', padding: '10px 14px' }}
+              {/* Logic Board button */}
+              <motion.button
+                type="button"
+                onClick={() => setShowLogic(true)}
+                className="flex-1 flex flex-col justify-center gap-3"
+                whileHover={{ scale: 1.02, backgroundColor: canSolve ? 'rgba(200,150,45,0.1)' : 'rgba(200,160,55,0.07)' }}
+                whileTap={{ scale: 0.97 }}
+                style={{
+                  height: 'clamp(74px, 10vh, 110px)',
+                  background: canSolve ? 'rgba(200,150,45,0.07)' : 'rgba(200,160,55,0.04)',
+                  border: `1px solid ${canSolve ? 'rgba(200,150,45,0.4)' : 'rgba(200,160,55,0.18)'}`,
+                  borderRadius: 10, padding: '0 22px', cursor: 'pointer',
+                  transition: 'border-color 0.4s, background 0.4s',
+                  boxShadow: canSolve ? '0 0 18px rgba(200,150,45,0.1)' : 'none',
+                }}
               >
-                <div className="mb-2 flex flex-none items-baseline gap-2">
-                  <h2
-                    style={{
-                      color: '#dcc070',
-                      fontSize: '0.82rem',
-                      letterSpacing: '0.22em',
-                      fontFamily: 'serif',
-                    }}
-                  >
-                    Logic Board
-                  </h2>
-                  <span
-                    style={{
-                      color: '#5a4820',
-                      fontSize: '0.52rem',
-                      letterSpacing: '0.18em',
-                      fontFamily: 'sans-serif',
-                    }}
-                  >
-                    推理板
-                  </span>
+                <div className="flex items-baseline gap-2">
+                  <span style={{
+                    color: canSolve ? '#dcc070' : '#4a4858',
+                    fontSize: '1rem', letterSpacing: '0.22em', fontFamily: 'serif', transition: 'color 0.4s',
+                  }}>Logic Board</span>
+                  <span style={{ color: '#5a4820', fontSize: '0.62rem', letterSpacing: '0.18em', fontFamily: 'sans-serif' }}>推理板</span>
                 </div>
-
-                <div className="mb-2 flex flex-none items-center justify-center gap-1.5">
-                  {KEY_CLUE_IDS.map((id, i) => {
-                    const spot = getClue(id)
-                    const collected = briefcaseClues.has(id)
-                    return (
-                      <Fragment key={id}>
-                        <motion.button
-                          type="button"
-                          disabled={!collected}
-                          onClick={() => collected && setActiveClueId(id)}
-                          className="flex flex-col items-center gap-1"
-                          style={{ cursor: collected ? 'pointer' : 'default' }}
-                          whileHover={collected ? { scale: 1.05, y: -2 } : {}}
-                        >
-                          <div
-                            style={{
-                              width: 50,
-                              height: 50,
-                              background: collected
-                                ? 'rgba(22,16,8,0.95)'
-                                : 'rgba(18,18,24,0.7)',
-                              border: `1px solid ${collected ? 'rgba(210,165,55,0.65)' : 'rgba(45,45,58,0.6)'}`,
-                              borderRadius: 7,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              overflow: 'hidden',
-                              boxShadow: collected
-                                ? '0 0 12px rgba(210,165,55,0.18)'
-                                : 'none',
-                              opacity: collected ? 1 : 0.28,
-                              flexShrink: 0,
-                            }}
-                          >
-                            {collected ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                src={spot.clueSrc}
-                                alt={spot.clueTitle}
-                                style={{
-                                  maxWidth: '88%',
-                                  maxHeight: '88%',
-                                  objectFit: 'contain',
-                                  display: 'block',
-                                }}
-                              />
-                            ) : (
-                              <span
-                                style={{
-                                  color: '#4a4a5a',
-                                  fontSize: '1.1rem',
-                                  fontFamily: 'serif',
-                                }}
-                              >
-                                ?
-                              </span>
-                            )}
-                          </div>
-                          <span
-                            style={{
-                              color: collected ? '#9a7e38' : '#30303c',
-                              fontSize: '0.5rem',
-                              letterSpacing: '0.08em',
-                              fontFamily: 'sans-serif',
-                              maxWidth: 62,
-                              textAlign: 'center',
-                            }}
-                          >
-                            {spot.clueTitle}
-                          </span>
-                        </motion.button>
-                        {i < KEY_CLUE_IDS.length - 1 && (
-                          <div
-                            style={{
-                              color: canSolve ? '#b89030' : '#282832',
-                              fontSize: '1.1rem',
-                              fontWeight: 600,
-                              flexShrink: 0,
-                              paddingBottom: 16,
-                              transition: 'color 0.4s',
-                            }}
-                          >
-                            +
-                          </div>
-                        )}
-                      </Fragment>
-                    )
-                  })}
-                </div>
-
-                <div
-                  className="mb-2 flex-none"
-                  style={{ height: 1, background: 'rgba(255,255,255,0.06)' }}
-                />
-
-                <p
-                  className="mb-1.5 flex-none text-center"
-                  style={{
-                    color: canSolve ? '#c8aa60' : '#484858',
-                    fontSize: '0.72rem',
-                    letterSpacing: '0.2em',
-                    fontFamily: 'serif',
-                    transition: 'color 0.4s',
-                  }}
-                >
-                  {PUZZLE_QUESTION}
-                </p>
-
-                <motion.button
-                  type="button"
-                  className="mb-1.5 flex-none w-full"
-                  disabled={!canSolve}
-                  style={{ cursor: canSolve ? 'default' : 'default' }}
-                >
-                  <div
-                    style={{
-                      padding: '7px',
-                      background: 'rgba(18,18,24,0.6)',
-                      border: '1px solid rgba(40,40,52,0.45)',
-                      borderRadius: 7,
-                      color: canSolve ? '#30303c' : '#505060',
-                      fontSize: '0.7rem',
-                      letterSpacing: '0.3em',
-                      fontFamily: 'sans-serif',
-                      textAlign: 'center',
-                      opacity: canSolve ? 0.45 : 1,
-                      transition: 'all 0.35s',
-                    }}
-                  >
-                    需要蒐集更多線索
-                  </div>
-                </motion.button>
-
-                <motion.button
-                  type="button"
-                  className="flex-none w-full"
-                  onClick={submitAnswer}
-                  disabled={!canSolve}
-                  style={{ cursor: canSolve ? 'pointer' : 'default' }}
-                  whileHover={canSolve ? { scale: 1.02 } : {}}
-                  whileTap={canSolve ? { scale: 0.97 } : {}}
-                >
-                  <div
-                    style={{
-                      padding: '7px',
-                      background: canSolve
-                        ? 'rgba(200,150,45,0.16)'
-                        : 'rgba(18,18,24,0.6)',
-                      border: `1px solid ${canSolve ? 'rgba(200,150,45,0.65)' : 'rgba(40,40,52,0.45)'}`,
-                      borderRadius: 7,
-                      color: canSolve ? '#e0b040' : '#30303c',
-                      fontSize: '0.7rem',
-                      letterSpacing: '0.3em',
-                      fontFamily: 'sans-serif',
-                      textAlign: 'center',
-                      boxShadow: canSolve
-                        ? '0 0 20px rgba(200,150,45,0.12)'
-                        : 'none',
-                      transition: 'all 0.35s',
-                    }}
-                  >
-                    提交答案
-                  </div>
-                </motion.button>
-              </div>
+                <AnimatePresence>
+                  {canSolve ? (
+                    <motion.span key="ready" initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                      style={{ color: '#c8a030', fontSize: '0.6rem', letterSpacing: '0.18em', fontFamily: 'sans-serif' }}>
+                      線索齊全　可提交答案
+                    </motion.span>
+                  ) : (
+                    <motion.span key="waiting" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                      style={{ color: '#3a3848', fontSize: '0.6rem', letterSpacing: '0.18em', fontFamily: 'sans-serif' }}>
+                      蒐集線索以解鎖推理
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </motion.button>
             </div>
+
+            {/* ── Evidence panel modal ── */}
+            <AnimatePresence>
+              {showEvidence && (
+                <motion.div key="evidence-panel" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  transition={{ duration: 0.18 }}
+                  className="absolute inset-0 z-20 flex items-center justify-center"
+                  style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(5px)' }}
+                  onClick={() => setShowEvidence(false)}
+                >
+                  <motion.div
+                    initial={{ opacity: 0, y: 26, scale: 0.93 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 14, scale: 0.96 }}
+                    transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+                    onClick={e => e.stopPropagation()}
+                    style={{
+                      background: 'linear-gradient(155deg, #1e1710 0%, #120e07 100%)',
+                      border: '1px solid rgba(200,160,55,0.38)', borderRadius: 14,
+                      width: 'min(480px, 92vw)', padding: '24px 28px', boxShadow: '0 30px 100px rgba(0,0,0,0.8)',
+                    }}
+                  >
+                    <div className="flex items-baseline justify-between mb-5">
+                      <div className="flex items-baseline gap-2">
+                        <h2 style={{ color: '#dcc070', fontSize: '0.9rem', letterSpacing: '0.22em', fontFamily: 'serif' }}>Evidence</h2>
+                        <span style={{ color: '#5a4820', fontSize: '0.55rem', letterSpacing: '0.18em', fontFamily: 'sans-serif' }}>證據欄</span>
+                      </div>
+                      <button type="button" onClick={() => setShowEvidence(false)}
+                        style={{ color: '#5a4820', fontSize: '1rem', background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3" style={{ height: 'min(200px, 28vh)' }}>
+                      {Array.from({ length: BRIEFCASE_CAPACITY }, (_, slotIndex) => {
+                        const id = briefcaseList[slotIndex]
+                        const spot = id ? getClue(id) : null
+                        return (
+                          <motion.button key={slotIndex} type="button" disabled={!spot}
+                            onClick={() => { if (spot) { setShowEvidence(false); setActiveClueId(spot.id) } }}
+                            className="relative flex flex-col items-center justify-between overflow-hidden rounded-lg"
+                            style={{
+                              background: spot ? 'rgba(26,20,10,0.95)' : 'rgba(18,18,24,0.8)',
+                              border: `1px solid ${spot ? 'rgba(210,165,55,0.6)' : 'rgba(50,50,62,0.5)'}`,
+                              boxShadow: spot ? '0 0 16px rgba(210,165,55,0.14)' : 'none',
+                              cursor: spot ? 'pointer' : 'default',
+                              padding: spot ? '8px 10px 6px' : 0,
+                            }}
+                            whileHover={spot ? { scale: 1.025, y: -1 } : {}}
+                            whileTap={spot ? { scale: 0.97 } : {}}
+                          >
+                            {spot ? (
+                              <>
+                                <div className="flex-1 min-h-0 flex items-center justify-center w-full overflow-hidden px-1.5 py-1">
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={spot.clueSrc} alt={spot.clueTitle}
+                                    style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain', display: 'block' }} />
+                                </div>
+                                <p style={{ color: '#a08838', fontSize: '0.48rem', letterSpacing: '0.1em', fontFamily: 'sans-serif', flexShrink: 0, marginTop: 2 }}>
+                                  {spot.clueTitle}
+                                </p>
+                              </>
+                            ) : (
+                              <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5" style={{ opacity: 0.18 }}>
+                                <span style={{ fontSize: '1.2rem' }}>?</span>
+                                <span style={{ color: '#606075', fontSize: '0.45rem', letterSpacing: '0.1em', fontFamily: 'sans-serif' }}>未放入</span>
+                              </div>
+                            )}
+                          </motion.button>
+                        )
+                      })}
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* ── Logic Board modal ── */}
+            <AnimatePresence>
+              {showLogic && (
+                <motion.div key="logic-panel" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  transition={{ duration: 0.18 }}
+                  className="absolute inset-0 z-20 flex items-center justify-center"
+                  style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(5px)' }}
+                  onClick={() => setShowLogic(false)}
+                >
+                  <motion.div
+                    initial={{ opacity: 0, y: 26, scale: 0.93 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 14, scale: 0.96 }}
+                    transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+                    onClick={e => e.stopPropagation()}
+                    style={{
+                      background: 'linear-gradient(155deg, #1e1710 0%, #120e07 100%)',
+                      border: '1px solid rgba(200,160,55,0.38)', borderRadius: 14,
+                      width: 'min(480px, 92vw)', padding: '24px 28px', boxShadow: '0 30px 100px rgba(0,0,0,0.8)',
+                    }}
+                  >
+                    <div className="flex items-baseline justify-between mb-5">
+                      <div className="flex items-baseline gap-2">
+                        <h2 style={{ color: '#dcc070', fontSize: '0.9rem', letterSpacing: '0.22em', fontFamily: 'serif' }}>Logic Board</h2>
+                        <span style={{ color: '#5a4820', fontSize: '0.55rem', letterSpacing: '0.18em', fontFamily: 'sans-serif' }}>推理板</span>
+                      </div>
+                      <button type="button" onClick={() => setShowLogic(false)}
+                        style={{ color: '#5a4820', fontSize: '1rem', background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1 }}>✕</button>
+                    </div>
+
+                    <div className="flex items-center justify-center gap-2 mb-5">
+                      {KEY_CLUE_IDS.map((id, i) => {
+                        const spot = getClue(id)
+                        const collected = briefcaseClues.has(id)
+                        return (
+                          <Fragment key={id}>
+                            <motion.button type="button" disabled={!collected}
+                              onClick={() => { if (collected) { setShowLogic(false); setActiveClueId(id) } }}
+                              className="flex flex-col items-center gap-1"
+                              style={{ cursor: collected ? 'pointer' : 'default' }}
+                              whileHover={collected ? { scale: 1.05, y: -2 } : {}}
+                            >
+                              <div style={{
+                                width: 58, height: 58,
+                                background: collected ? 'rgba(22,16,8,0.95)' : 'rgba(18,18,24,0.7)',
+                                border: `1px solid ${collected ? 'rgba(210,165,55,0.65)' : 'rgba(45,45,58,0.6)'}`,
+                                borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                overflow: 'hidden', boxShadow: collected ? '0 0 12px rgba(210,165,55,0.18)' : 'none',
+                                opacity: collected ? 1 : 0.28, flexShrink: 0,
+                              }}>
+                                {collected ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img src={spot.clueSrc} alt={spot.clueTitle}
+                                    style={{ maxWidth: '88%', maxHeight: '88%', objectFit: 'contain', display: 'block' }} />
+                                ) : (
+                                  <span style={{ color: '#4a4a5a', fontSize: '1.1rem', fontFamily: 'serif' }}>?</span>
+                                )}
+                              </div>
+                              <span style={{ color: collected ? '#9a7e38' : '#30303c', fontSize: '0.5rem', letterSpacing: '0.08em', fontFamily: 'sans-serif', maxWidth: 62, textAlign: 'center' }}>
+                                {spot.clueTitle}
+                              </span>
+                            </motion.button>
+                            {i < KEY_CLUE_IDS.length - 1 && (
+                              <div style={{ color: canSolve ? '#b89030' : '#282832', fontSize: '1.1rem', fontWeight: 600, flexShrink: 0, paddingBottom: 16, transition: 'color 0.4s' }}>+</div>
+                            )}
+                          </Fragment>
+                        )
+                      })}
+                    </div>
+
+                    <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', marginBottom: 16 }} />
+
+                    <p className="text-center mb-4" style={{
+                      color: canSolve ? '#c8aa60' : '#484858',
+                      fontSize: '0.78rem', letterSpacing: '0.2em', fontFamily: 'serif', transition: 'color 0.4s',
+                    }}>
+                      {PUZZLE_QUESTION}
+                    </p>
+
+                    <motion.button type="button" className="w-full" onClick={submitAnswer} disabled={!canSolve}
+                      style={{ cursor: canSolve ? 'pointer' : 'default' }}
+                      whileHover={canSolve ? { scale: 1.02 } : {}}
+                      whileTap={canSolve ? { scale: 0.97 } : {}}
+                    >
+                      <div style={{
+                        padding: '9px',
+                        background: canSolve ? 'rgba(200,150,45,0.16)' : 'rgba(18,18,24,0.6)',
+                        border: `1px solid ${canSolve ? 'rgba(200,150,45,0.65)' : 'rgba(40,40,52,0.45)'}`,
+                        borderRadius: 7, color: canSolve ? '#e0b040' : '#30303c',
+                        fontSize: '0.7rem', letterSpacing: '0.3em', fontFamily: 'sans-serif',
+                        textAlign: 'center', boxShadow: canSolve ? '0 0 20px rgba(200,150,45,0.12)' : 'none',
+                        transition: 'all 0.35s',
+                      }}>
+                        {canSolve ? '提交答案' : '需要蒐集更多線索'}
+                      </div>
+                    </motion.button>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* 線索詳情視窗 */}
             <AnimatePresence mode="wait">
@@ -826,7 +760,7 @@ export default function Chapter4Page() {
                       overflowY: 'auto',
                     }}
                   >
-                    <div className="mb-5 flex items-center">
+                    <div className="mb-5 flex items-center justify-between">
                       <h3
                         id="clue-modal-title"
                         style={{
@@ -838,6 +772,8 @@ export default function Chapter4Page() {
                       >
                         {activeClue.clueTitle}
                       </h3>
+                      <button type="button" onClick={() => setActiveClueId(null)}
+                        style={{ color: '#5a4820', fontSize: '1rem', background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1 }}>✕</button>
                     </div>
 
                     <div
